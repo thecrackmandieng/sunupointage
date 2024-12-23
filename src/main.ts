@@ -1,18 +1,9 @@
-/* import { bootstrapApplication } from '@angular/platform-browser';
-import { AppComponent } from './app/app.component';
-import { provideRouter, Routes } from '@angular/router';
-import { provideHttpClient, withFetch } from '@angular/common/http';
-import { LoginComponent } from './app/pages/login/login.component'; // Chemin vers votre composant
-
-
-// Définissez vos routes ici
-const routes: Routes = [
-  { path: 'login', loadComponent: () => import('./app/pages/login/login.component').then(m => m.LoginComponent) },
-];
+import { bootstrapApplication } from '@angular/platform-browser'; // Pour applications standalone
+import { provideHttpClient, withFetch } from '@angular/common/http'; // Pour configurer HttpClient avec fetch
+import { AppComponent } from './app/app.component'; // Vérifiez le chemin
 
 bootstrapApplication(AppComponent, {
   providers: [
-    provideHttpClient(withFetch()) 
-  ]
+    provideHttpClient(withFetch()), // Configuration correcte pour HttpClient
+  ],
 }).catch(err => console.error(err));
- */
