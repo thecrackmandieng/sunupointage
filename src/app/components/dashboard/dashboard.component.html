@@ -1,0 +1,110 @@
+<div class="d-flex flex-column flex-md-row vh-100">
+    <!-- Sidebar -->
+    <div 
+      class="sidebar d-flex flex-column text-white p-3"
+      [class.d-none]="!isSidebarOpen"
+      [class.d-md-flex]="true"
+      style="background-color: #137c8b; min-width: 250px;">
+      
+      <!-- Logo -->
+      <div class="logo-container mb-4"></div>
+  
+      <button class="btn btn-light text-dark w-100 mb-3 mt-2">Pointages</button>
+      
+      <!-- Toggle button with dynamic icons in sidebar -->
+      <div class="toggle-m" (click)="toggleSidebar()">
+        <i *ngIf="isSidebarOpen" class="fas fa-toggle-on"><p class="mes">Ouvrir</p></i> <!-- Icone lorsque la sidebar est ouverte -->
+        <i *ngIf="!isSidebarOpen" class="fas fa-toggle-off"><p class="mes">Fermer</p></i> 
+      </div>
+  
+      <!-- Déconnexion button with icon -->
+      <button class="btn btn-danger w-100 mt-auto" (click)="logout()">
+        <i class="fas fa-sign-out-alt me-2"></i> Déconnexion
+      </button>
+    </div>
+  
+    <!-- Main Content -->
+    <div class="container py-5">
+      <h1 class="mb-4">Bienvenue, {{ userName }} !</h1>
+      <p class="lead">Voici la liste des employés :</p>
+    
+      <!-- Carte contenant les champs de recherche et la table -->
+      <div class="card shadow-sm">
+        <div class="card-body">
+          <!-- Champs de recherche et de filtre -->
+          <div class="row mb-3">
+            <div class="col-md-5">
+              <div class="input-group">
+                <span class="input-group-text">
+                  <i class="fas fa-search"></i> <!-- Icône de recherche -->
+                </span>
+                <input
+                  type="text"
+                  class="form-control"
+                  placeholder="Rechercher par téléphone"
+                  [(ngModel)]="searchQuery"
+                  (input)="applyFilters()"
+                />
+              </div>
+            </div>
+            <div class="col-md-5">
+              <select
+                class="form-select"
+                [(ngModel)]="selectedDepartment"
+                (change)="applyFilters()"
+              >
+                <option value="">Filtre</option>
+                <option *ngFor="let dept of departments" [value]="dept">
+                  {{ dept }}
+                </option>
+              </select>
+            </div>
+          </div>
+    
+          <!-- Table des employés -->
+          <div *ngIf="errorMessage" class="alert alert-danger">
+            {{ errorMessage }}
+          </div>
+    
+          <div *ngIf="filteredEmployees.length === 0 && !errorMessage" class="text-center">
+            <p>Aucun employé trouvé.</p>
+          </div>
+    
+          <div class="table-responsive" *ngIf="filteredEmployees.length > 0">
+            <table class="table table-striped align-middle">
+              <thead class="table">
+                <tr>
+                  <th>Photos</th>
+                  <th>Prénom</th>
+                  <th>Nom</th>
+                  <th>Téléphone</th>
+                  <th>Département / Cohorte</th>
+                  <th>Email</th>
+                  <th>Date et Heure</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let employee of filteredEmployees">
+                  <td>
+                    <img
+                      [src]="employee.photo"
+                      alt="Photo"
+                      class="profile-pic"
+                      style="width: 40px; height: 40px; border-radius: 50%;"
+                    />
+                  </td>
+                  <td>{{ employee.prenom }}</td>
+                  <td>{{ employee.nom }}</td>
+                  <td>{{ employee.telephone }}</td>
+                  <td>{{ employee.departement }}</td>
+                  <td>{{ employee.email }}</td>
+                  <td>{{ employee.created_at | date: 'short' }}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  

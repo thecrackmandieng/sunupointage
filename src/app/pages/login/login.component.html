@@ -3,9 +3,8 @@
   <div class="card shadow-lg d-flex flex-row overflow-hidden rounded" style="max-width: 1200px; border-radius: 20px;">
     
     <!-- Partie gauche : Formulaire avec image de fond -->
-    <div class="left-section p-4 d-flex flex-column justify-content-end position-relative text-white" style="margin-left: 20px;"> <!-- Déplacement vers la gauche -->
-      <!-- Contenu du formulaire -->
-      <div class="text-start w-100"> <!-- Alignement à gauche -->
+    <div class="left-section p-4 d-flex flex-column justify-content-end position-relative text-white" style="margin-left: 20px;"> 
+      <div class="text-start w-100">
         <h1 class="mb-4 fw-bold welcome-title">Bienvenue</h1>
         <form class="w-100" (ngSubmit)="onSubmit()" #loginForm="ngForm">
           
@@ -24,7 +23,7 @@
           <div class="form-group mb-3">
             <label for="password" class="form-label text-white fw-bold">Mot de passe</label>
             <div class="d-flex align-items-center">
-              <input [type]="showPassword ? 'text' : 'password'" id="password" name="password" class="form-control w-100 bg-transparent  text-white border-0 border-bottom rounded-0"
+              <input [type]="showPassword ? 'text' : 'password'" id="password" name="password" class="form-control w-100  text-white border-0 border-bottom rounded-0"
                      placeholder="Entrez votre mot de passe" required minlength="8" #password="ngModel" [(ngModel)]="user.password">
               <span class="eye-icon ms-2" (click)="togglePasswordVisibility()">
                 <i [ngClass]="showPassword ? 'fa fa-eye-slash' : 'fa fa-eye'"></i>
