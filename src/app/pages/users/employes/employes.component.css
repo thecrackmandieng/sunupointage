@@ -1,0 +1,182 @@
+.main-content {
+    margin-left: 100px;
+    padding: 200px;
+  }
+  
+  /* Bouton Ajouter */
+  .button {
+    background-color: #137C8B;
+    color: white;
+    border: none;
+    cursor: pointer;
+    border-radius: 4px;
+    padding: 8px;
+  }
+  
+  .button:hover {
+    background-color: #106c76;
+  }
+  
+  .filter-section {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+  }
+  
+  .search-bar {
+    position: relative;
+    margin-right: 20px;
+  }
+  
+  .search-icon {
+    position: absolute;
+    left: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 18px;
+    color: #aaa;
+  }
+  
+  .search-input {
+    padding: 5px 10px 5px 30px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    width: 250px;
+    font-size: 14px;
+    box-sizing: border-box;
+  }
+  
+  .filter-right {
+    display: flex;
+    align-items: center;
+    color: #106c76; /* Couleur des icônes */
+
+  }
+  
+  .filter-select-container {
+    margin-right: 10px;
+    color: #106c76; /* Couleur des icônes */
+
+  }
+  
+  .filter-select {
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    color: #106c76; /* Couleur des icônes */
+
+  }
+  
+  .action-button-container {
+    margin-right: auto;
+  }
+  
+  .actions button {
+    
+    padding: 5px;
+    cursor: pointer;
+    background: none; /* Pas de fond pour les boutons */
+    border: none; /* Pas de bordure pour les boutons */
+    font-size: 18px; /* Taille de l'icône */
+    color: #106c76; /* Couleur des icônes */
+  }
+  
+ 
+  
+  /* Vous pouvez ajouter un style spécifique pour le bouton "Ajouter" si vous voulez le différencier */
+  .actions .action-button {
+    font-size: 20px; /* Augmente la taille de l'icône si nécessaire */
+    color: #106c76; /* Couleur verte pour l'icône plus (ajouter) */
+  }
+  
+  
+  /* Conteneur du tableau */
+  .table-container {
+    margin-top: 20px;
+    overflow-x: auto;
+  }
+  
+  
+.data-table {
+  width: 100%;
+  border-collapse: collapse; /* Fusion des bordures pour éviter des doublons */
+  margin-top: 20px;
+}
+
+.data-table th, .data-table td {
+  padding: 12px;
+  text-align: center;
+}
+
+/* Lignes horizontales */
+.data-table tr {
+  border-bottom: 1px solid #ddd; /* Ajout d'une bordure horizontale entre chaque ligne */
+}
+
+/* Couleur d'arrière-plan pour l'en-tête */
+.data-table th {
+  background-color: #f4f4f4;
+  font-weight: bold; /* Mettre les titres en gras */
+}
+
+/* Suppression de la bordure de la case à cocher */
+.data-table td input[type="checkbox"] {
+  margin-left: 10px;
+}
+
+  
+  /* Pagination */
+  .pagination {
+    margin-top: 20px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+  
+  .pagination button {
+    background-color: #137C8B;
+    color: white;
+    padding: 8px 15px;
+    border: none;
+    cursor: pointer;
+    margin: 0 5px;
+  }
+  
+  .pagination button:hover {
+    background-color: #106c76;
+  }
+  
+
+  .name-checkbox-container {
+    display: flex;
+    align-items: center;
+    gap: 10px; /* Espace entre la case à cocher et le nom */
+  }
+  
+  .name-checkbox-container input[type="checkbox"] {
+    margin: 0; /* Enlever la marge autour de la case à cocher */
+  }
+  
+
+
+  .apprenant-photo {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%; /* Pour afficher l'image en cercle */
+    object-fit: cover; /* Pour que l'image couvre l'espace sans être déformée */
+  }
+  
+  .avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%; /* Rendre l'avatar circulaire */
+    background-color: #4CAF50; /* Vous pouvez définir la couleur de fond */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: white;
+    font-size: 18px;
+    font-weight: bold;
+  }
+  

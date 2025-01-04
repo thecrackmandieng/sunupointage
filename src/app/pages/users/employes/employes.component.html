@@ -1,0 +1,86 @@
+<app-sidebar></app-sidebar>
+<div class="main-content">
+    <div class="filter-section">
+        <button (click)="openCSVImportDialog()" class="button">Importer CSV</button>
+
+        <label for="filter-right">Département: </label>
+        <div class="filter-right">
+            <select [(ngModel)]="selectedDepartement" (change)="onDepartementChange()" class="filter-select">
+                <option *ngFor="let departement of departements" [value]="departement.id">
+                  {{ departement.name }}
+                </option>
+              </select>
+              
+        </div>
+    </div>
+
+    <div class="table-container">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Photo</th>
+                    <th>Prénom et Nom</th>
+                    <th>Matricule</th>
+                    <th>Email</th>
+                    <th>Téléphone</th>
+                    <th>Fonction</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Affichage des employés -->
+                <tr *ngFor="let employe of employes">
+                    <td>
+                        <div class="name-checkbox-container">
+                            <input type="checkbox" [(ngModel)]="employe.selected">
+                            <div *ngIf="employe.photo; else avatar">
+                                <img [src]="employe.photo" alt="Photo" class="employe-photo" />
+                            </div>
+                            <ng-template #avatar>
+                                <div class="avatar">
+                                    <!-- Création de l'avatar avec les initiales -->
+                                    <span>{{ getInitials(employe.prenom, employe.nom) }}</span>
+                                </div>
+                            </ng-template>
+                        </div>
+                    </td>
+                    <td>{{ employe.prenom }} {{ employe.nom }}</td>
+                    <td>{{ employe.matricule }}</td>
+                    <td>{{ employe.email }}</td>
+                    <td>{{ employe.telephone }}</td>
+                    <td>{{ employe.fonction }}</td>
+                    <td class="actions">
+                        <!-- Icône de modification -->
+                        <button (click)="editEmploye(employe)" class="action-button">
+                            <i class="fas fa-edit"></i>
+                        </button>
+
+                        <!-- Icône de blocage -->
+                        <button (click)="blockEmploye(employe)" class="action-button">
+                            <i class="fas fa-user-lock"></i>
+                        </button>
+
+                        <!-- Icône de suppression -->
+                        <button (click)="deleteEmploye(employe)" class="action-button">
+                            <i class="fas fa-trash-alt"></i>
+                        </button>
+
+                        <!-- Icône de vue -->
+                        <button (click)="viewEmploye(employe)" class="action-button">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <button *ngIf="selectedEmployes.length > 0" (click)="bulkDelete()">Supprimer Sélection</button>
+    <button *ngIf="selectedEmployes.length > 0" (click)="bulkBlock()">Bloquer Sélection</button>
+
+    <div class="pagination">
+        <button (click)="previousPage()">Précédent</button>
+        <button (click)="nextPage()">Suivant</button>
+    </div>
+</div>
+

@@ -1,0 +1,92 @@
+<app-sidebar></app-sidebar>
+<div class="main-content">
+    <div class="filter-section">
+        <button (click)="openCSVImportDialog()" class="button">Importer CSV</button>
+
+        <label for="filter-right">Cohorte: </label>
+        <div class="filter-right">
+            <select [(ngModel)]="selectedCohorte" (change)="onCohorteChange()" class="filter-select">
+                <option *ngFor="let cohorte of cohortes" [value]="cohorte.id">{{ cohorte.nom }}</option>
+              </select>
+        </div>
+      </div>
+
+      
+      <div class="table-container">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Photo</th>
+              <th>Prénom et Nom</th>
+              <th>Matricule</th>
+              <th>Email</th>
+              <th>Téléphone</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <!-- Affichage des apprenants -->
+            <tr *ngFor="let apprenant of apprenants">
+              <td>
+                <!-- Affichage de la photo de l'apprenant, sinon un avatar avec les initiales -->
+                <div class="name-checkbox-container">
+                  <input type="checkbox" [(ngModel)]="apprenant.selected">
+                <div *ngIf="apprenant.photo; else avatar">
+                  <img [src]="apprenant.photo" alt="Photo" class="apprenant-photo" />
+                </div>
+                <ng-template #avatar>
+                  <div class="avatar">
+                    <!-- Création de l'avatar avec les initiales -->
+                    <span>{{ getInitials(apprenant.prenom, apprenant.nom) }}</span>
+                  </div>
+                </ng-template>
+              </div>
+              </td>
+            
+              <td>
+                <!-- Conteneur pour la case à cocher et le nom complet -->
+               
+                  {{ apprenant.prenom }} {{ apprenant.nom }} <!-- Affichage du prénom et du nom -->
+               
+              </td>
+              <td>{{ apprenant.matricule }}</td>
+              <td>{{ apprenant.email }}</td>
+              <td>{{ apprenant.telephone }}</td>
+              <td class="actions">
+                <!-- Icône de modification -->
+                <button (click)="editApprenant(apprenant)" class="action-button">
+                  <i class="fas fa-edit"></i>
+                </button>
+               
+                <!-- Icône de blocage -->
+                <button (click)="blockApprenant(apprenant)" class="action-button">
+                  <i class="fas fa-user-lock"></i>
+
+                </button>
+                <!-- Icône de suppression -->
+                <button (click)="deleteApprenant(apprenant)" class="action-button">
+                  <i class="fas fa-trash-alt"></i>
+                </button>
+
+                 <!-- Icône de vue -->
+                 <button (click)="viewApprenant(apprenant)" class="action-button">
+                  <i class="fas fa-eye"></i>
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      
+     
+     
+      <button *ngIf="selectedApprenants.length > 0" (click)="bulkDelete()">Supprimer Sélection</button>
+      <button *ngIf="selectedApprenants.length > 0" (click)="bulkBlock()">Bloquer Sélection</button>
+      
+
+  <div class="pagination">
+    <button>Précédent</button>
+    <button>Suivant</button>
+  </div>
+</div>
+
