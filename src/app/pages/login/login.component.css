@@ -16,8 +16,8 @@ body {
   height: 550px; /* Hauteur fixe */
   background: url('../../../assets/bgs.png') no-repeat center center/cover; /* Image de fond */
   display: flex;
-  align-items: center;
-  justify-content: center;
+  align-items: left;
+  justify-content: left;
   border-radius: 40px;
   color: white;
   overflow: hidden; /* Évite les dépassements */
@@ -37,6 +37,7 @@ body {
   padding: 50px; /* Ajoute un padding */
   z-index: 1; /* Assure que la partie gauche est au-dessus de l'image */
   margin-left: 80px; /* Déplacement vers la gauche */
+  margin-top: 50px;
 }
 
 /* Overlay sombre pour lisibilité */
@@ -49,10 +50,10 @@ body {
   z-index: 1;
 }
 
-/* Contenu de la carte */
-.content {
-  width: 100%;
-  text-align: left; /* Aligner le texte à gauche */
+/* Champs avec espace réservé pour les messages */
+.form-group {
+  position: relative;
+  margin-bottom: 40px; /* Ajoute un espace suffisant pour les messages d'erreur */
 }
 
 /* Formulaire */
@@ -70,7 +71,6 @@ body {
   border: none;
   border-bottom: 2px solid rgba(255, 255, 255, 0.7);
   border-radius: 0;
-  margin-right: 20px; /* Ajuste la marge à droite */
   margin-top: 10px;
 }
 
@@ -80,25 +80,27 @@ body {
   border-color: white;
 }
 
-/* Icone d'œil pour afficher/mot de passe */
+/* Messages d'erreur */
+.error-message {
+  position: absolute; /* Fixe les messages d'erreur */
+  bottom: -20px; /* Place les messages juste sous le champ */
+  left: 0;
+  font-size: 0.85rem; /* Ajuste la taille du texte */
+  color: red;
+}
+
+/* Icone d'œil pour afficher/masquer le mot de passe */
 .eye-icon {
   cursor: pointer;
   color: white;
+  font-size: 1.5rem;
 }
 
-/* Partie droite : Image de fond */
-.right-section {
-  flex: 1; /* Occupe l'autre moitié de la carte */
-}
-
-/* Contenu de la carte */
-.content {
-  width: 100%;
-  text-align: center; /* Centre le texte de tout le contenu */
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
+/* Bouton de connexion */
+.btn-light {
+  font-size: 1.2rem; /* Augmente la taille de la police */
+  padding: 10px; /* Augmente le padding pour rendre le bouton plus grand */
+  border-radius: 5px; /* Ajuste le rayon des coins si nécessaire */
 }
 
 /* Titre */
@@ -109,17 +111,4 @@ body {
   font-weight: bold;
   text-align: center; /* Centre le titre */
   width: 100%; /* S'assure que le titre occupe toute la largeur disponible */
-}
-
-.eye-icon {
-  cursor: pointer; /* Change le curseur pour indiquer que l'élément est cliquable */
-  font-size: 1.5rem; /* Taille de l'icône */
-  color: white; /* Couleur de l'icône */
-}
-
-/* Bouton de connexion */
-.btn-light {
-  font-size: 1.2rem; /* Augmente la taille de la police */
-  padding: 10px; /* Augmente le padding pour rendre le bouton plus grand */
-  border-radius: 5px; /* Ajuste le rayon des coins si nécessaire */
 }

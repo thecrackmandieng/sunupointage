@@ -1,80 +1,111 @@
-import { Component, OnInit } from '@angular/core';
-import { FormsModule } from '@angular/forms'; // Pour gérer les formulaires
-import { CommonModule } from '@angular/common'; // Pour les directives comme ngIf, ngClass
-import { HttpClientModule } from '@angular/common/http'; // Pour utiliser HttpClient
-import { Router } from '@angular/router'; // Pour la navigation après la connexion
-import { AuthService } from './../../auth.service'; // Import du service AuthService
+import { Component, OnInit, OnDestroy } from '@angular/core';
+import { FormsModule } from '@angular/forms';
+import { CommonModule } from '@angular/common';
+import { HttpClientModule } from '@angular/common/http';
+import { Router } from '@angular/router';
+import { AuthService } from './../../auth.service';
+import { RFIDService } from './../../rfid.service';
+import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-login',
-  standalone: true, // Marque le composant comme standalone
-  templateUrl: './login.component.html', // Chemin vers le fichier HTML
-  styleUrls: ['./login.component.css'], // Chemin vers le fichier CSS
-  imports: [CommonModule, FormsModule, HttpClientModule], // Importation du module HttpClientModule pour HttpClient
+  standalone: true,
+  templateUrl: './login.component.html',
+  styleUrls: ['./login.component.css'],
+  imports: [CommonModule, FormsModule, HttpClientModule],
 })
-export class LoginComponent implements OnInit {
+export class LoginComponent implements OnInit, OnDestroy {
   user = {
     email: '',
     password: '',
+    rfidUID: '',
   };
   isLoading = false;
   errorMessage: string | null = null;
   showPassword = false;
+  rfidSubscription: Subscription | undefined;
 
-  constructor(private authService: AuthService, private router: Router) {}
+  constructor(
+    private authService: AuthService,
+    private rfidService: RFIDService,
+    private router: Router
+  ) {}
 
   ngOnInit() {
-    this.listenForRFID(); // Écouter les événements de détection de la carte RFID
-  }
-
-  // Méthode pour écouter les événements de détection de la carte RFID
-  listenForRFID() {
-    // Remplacez cette partie par votre logique pour écouter les événements de l'Arduino ou du lecteur RFID
-    const rfidReader = new EventSource('http://localhost:5000/events'); // Exemple d'URL pour écouter les événements RFID
-
-    rfidReader.onmessage = (event) => {
-      const uid = event.data; // Supposons que l'UID est envoyé dans le message
-      console.log(`Carte détectée avec UID : ${uid}`);
-      this.loginWithRFID(uid); // Appeler la méthode de connexion avec l'UID détecté
-    };
-  }
-
-  // Méthode pour se connecter avec l'UID détecté
-  loginWithRFID(rfidUID: string) {
-    this.isLoading = true;
-
-    this.authService.loginWithRFID(rfidUID).subscribe({
-      next: (response) => {
-        this.handleSuccess(response);
-      },
-      error: (error) => {
-        this.handleError(error);
-      },
+    // Commencer à écouter les événements RFID
+    this.rfidSubscription = this.rfidService.getRFIDStatus().subscribe((data) => {
+      if (data.status === 'AUTHORIZED') {
+        // Si la carte est autorisée, récupérer l'UID et essayer de se connecter
+        this.user.rfidUID = data.uid;
+        this.onSubmit(); // Appeler la méthode onSubmit pour connecter l'utilisateur
+      } else {
+        // Si la carte n'est pas autorisée, afficher un message d'erreur
+        this.errorMessage = 'Carte RFID non autorisée';
+      }
     });
+  }
+
+  ngOnDestroy() {
+    // Nettoyage à la destruction du composant
+    if (this.rfidSubscription) {
+      this.rfidSubscription.unsubscribe();
+    }
+    this.rfidService.stopListeningRFID(); // Fermer la connexion SSE
   }
 
   // Méthode appelée lors de la soumission du formulaire
   onSubmit() {
     this.isLoading = true;
-
-    // Connexion via email et mot de passe
-    this.authService.login(this.user.email, this.user.password).subscribe({
-      next: (response) => {
-        this.handleSuccess(response);
-      },
-      error: (error) => {
-        this.handleError(error);
-      },
-    });
+  
+    if (this.user.rfidUID) {
+      // Connexion par carte RFID
+      this.authService.loginWithRFID(this.user.rfidUID).subscribe({
+        next: (response) => {
+          this.handleSuccess(response);
+        },
+        error: (error) => {
+          this.handleError(error);
+        },
+      });
+    } else {
+      // Connexion par email et mot de passe
+      this.authService.login(this.user.email, this.user.password).subscribe({
+        next: (response) => {
+          this.handleSuccess(response);
+        },
+        error: (error) => {
+          this.handleError(error);
+        },
+      });
+    }
   }
+  
 
   // Gérer le succès de la connexion
   handleSuccess(response: any) {
     this.isLoading = false;
     console.log('Connexion réussie', response);
-    localStorage.setItem('token', response.api_token); // Sauvegarder le jeton d'authentification dans le stockage local
-    this.router.navigate(['/dashboard']); // Redirection vers le tableau de bord ou la page d'accueil
+  
+    // Sauvegarder le jeton d'authentification
+    localStorage.setItem('token', response.api_token);
+  
+    // Vérifier si le rôle est défini et rediriger en fonction du rôle
+    const role = response.role;
+  
+    if (role === 'admin') {
+      // Si le rôle est admin, rediriger vers le tableau de bord admin
+      this.router.navigate(['/admin-dashboard']);
+    } else if (role === 'vigile') {
+      // Si le rôle est vigile, rediriger vers le tableau de bord vigile
+      this.router.navigate(['/dashboard']);
+    } else {
+      // Si le rôle est inconnu ou non autorisé
+      this.errorMessage = 'Rôle utilisateur inconnu ou non autorisé';
+      console.error('Rôle inconnu:', role);
+    }
   }
+  
+
 
   // Gérer les erreurs de connexion
   handleError(error: any) {
