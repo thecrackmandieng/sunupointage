@@ -11,6 +11,21 @@ import { HttpClientModule } from '@angular/common/http';  // L'import doit être
 
 
 @NgModule({
+  declarations: [...],
+  imports: [
+    ...,
+    NgbModule
+  ],
+  providers: [],
+  bootstrap: [AppComponent]
+})
+export class AppModule { }
+
+
+
+
+
+@NgModule({
   declarations: [
     
     

@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 
+
 @Injectable({
   providedIn: 'root'
 })
@@ -73,5 +74,18 @@ getDepartements(): Observable<any> {
    listerApprenantsParCohorte(cohorteId: number): Observable<any> {
     return this.http.get<any>(`${this.apiUrlCohortes}/${cohorteId}/apprenants`);
   }
+
+
+  addApprenant(newItem: any) {
+    // L'URL doit commencer par 'http://localhost:8000'
+    return this.http.post('http://localhost:8000/api/apprenant/create', newItem);  // Utilisez votre API pour ajouter un apprenant
+  }
+  
+  addEmploye(newItem: any) {
+    // L'URL doit commencer par 'http://localhost:8000'
+    return this.http.post('http://localhost:8000/api/employe/create', newItem);  // Utilisez votre API pour ajouter un employé
+  }
+  
+    
   
 }  

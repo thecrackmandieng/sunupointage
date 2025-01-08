@@ -30,7 +30,7 @@ export class ApprenantService {
   }
 
  
-  getApprenantsByCohorte(id: number): Observable<Apprenant[]> {
+  getApprenantsByCohorte(id: string): Observable<Apprenant[]> {
     return this.http.get<{ apprenants: Apprenant[] }>(`${this.apiUrlCohortes}/${id}/apprenants`).pipe(
       map((response) => {
         if (response && response.apprenants) {
@@ -48,20 +48,48 @@ export class ApprenantService {
   }
   
 
+// Supprimer un employé
+deleteApprenant(id: number): Observable<any> {
+  return this.http.delete(`${this.baseUrl}/delete/${id}`);
+}
 
+// Bloquer un employé
+blockApprenant(id: number): Observable<any> {
+  return this.http.post(`${this.baseUrl}/block/${id}`, {});
+}
 
 
   deleteApprenants(ids: number[]): Observable<any> {
-    return this.http.post(`${this.baseUrl}/apprenants/bulk-delete`, { ids });
+    return this.http.post(`${this.baseUrl}/apprenant/bulk-delete`, { ids });
   }
 
   blockApprenants(ids: number[]): Observable<any> {
-    return this.http.post(`${this.baseUrl}/apprenants/bulk-block`, { ids });
+    return this.http.post(`${this.baseUrl}/apprenant/bulk-block`, { ids });
   }
 
-  importCSV(id: number, file: File): Observable<any> {
-    const formData = new FormData();
-    formData.append('file', file);
-    return this.http.post(`${this.baseUrl}/cohortes/${id}/import`, formData);
+ // Importer des apprenants via CSV
+importCSV(file: File): Observable<any> {
+  const formData = new FormData();
+  formData.append('file', file);
+  return this.http.post(`${this.baseUrl}/import`, formData);
+}
+
+    
+  
+
+  // Méthode pour récupérer les employés par département
+  listerApprenantsParCohorte(cohorteId: number): Observable<any> {
+    return this.http.get<any>(`${this.apiUrlCohortes}/${cohorteId}/apprenant`);
   }
+
+ // Méthode pour récupérer un apprenant par son ID
+ getApprenantById(id: number): Observable<any> {
+  return this.http.get(`${this.baseUrl}/show/${id}`);
+}
+
+// Mettre à jour un apprenant
+updateApprenant(apprenant: any): Observable<any> {
+  return this.http.put(`${this.baseUrl}/update/${apprenant.id}`, apprenant);
+}
+
 }

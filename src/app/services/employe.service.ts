@@ -18,7 +18,7 @@ export class EmployeService {
   }
 
   // Méthode pour récupérer les employés par département
-  getEmployesByDepartement(departementId: number): Observable<any> {
+  getEmployesByDepartement(departementId: string): Observable<any> {
     return this.http.get<any>(`${this.apiUrlDepartements}/${departementId}/employes`);
   }
 
@@ -27,14 +27,10 @@ export class EmployeService {
     return this.http.post(this.baseUrl, employe);
   }
 
-  // Modifier un employé
-  updateEmploye(employe: any): Observable<any> {
-    return this.http.put(`${this.baseUrl}/${employe.id}`, employe);
-  }
 
   // Supprimer un employé
   deleteEmploye(id: number): Observable<any> {
-    return this.http.delete(`${this.baseUrl}/${id}`);
+    return this.http.delete(`${this.baseUrl}/delete/${id}`);
   }
 
   // Bloquer un employé
@@ -42,10 +38,24 @@ export class EmployeService {
     return this.http.post(`${this.baseUrl}/block/${id}`, {});
   }
 
-  // Importer des employés via CSV
-  importCSV(file: File): Observable<any> {
+   // Importer des employés via CSV
+   importCSV(file: File): Observable<any> {
     const formData = new FormData();
     formData.append('file', file);
     return this.http.post(`${this.baseUrl}/import`, formData);
   }
+
+
+   // Méthode pour récupérer un apprenant par son ID
+ getEmployeById(id: number): Observable<any> {
+  return this.http.get(`${this.baseUrl}/show/${id}`);
+}
+
+// Mettre à jour un apprenant
+updateEmploye(employe: any): Observable<any> {
+  return this.http.put(`${this.baseUrl}/update/${employe.id}`, employe);
+}
+
+
+
 }
