@@ -38,7 +38,9 @@
             </thead>
             <tbody>
                 <!-- Affichage des employés -->
-                <tr *ngFor="let employe of employes">
+                <tr *ngFor="let employe of displayedEmployes">
+                  
+
                     <td>
                         <div class="name-checkbox-container">
                             <input
@@ -107,11 +109,10 @@
     </div>
     
     <div class="pagination">
-      <button (click)="previousPage()">Précédent</button>
-      <span>Page {{ currentPages }}</span>
-      <button (click)="nextPage()">Suivant</button>
+      <button (click)="previousPage()" [disabled]="page === 1">Précédent</button>
+      <span>Page {{ page }} sur {{ Math.ceil(totalEmployes / size) }}</span>
+      <button (click)="nextPage()" [disabled]="page === Math.ceil(totalEmployes / size)">Suivant</button>
     </div>
-
 
          <!-- Modal de détails de l'apprenant -->
     <div *ngIf="showEmployeModal" class="employe-modal">

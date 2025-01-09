@@ -1018,14 +1018,14 @@
         <div class="form-group">
           <label for="nom">Nom <span class="required">*</span></label>
           <input type="text" id="nom" name="nom" [(ngModel)]="employe.nom" required #nom="ngModel"
-                pattern="[A-Za-z ]+" (input)="validateField(nom)">
+                pattern="[A-Za-z ]+" (input)="validateField(nom)"  placeholder="Entrez le nom " class="form-control">
           <div *ngIf="nom.invalid && nom.touched" class="error-message">Le nom ne peut contenir que des lettres et des espaces.</div>
         </div>
 
         <div class="form-group">
           <label for="prenom">Prénom <span class="required">*</span></label>
           <input type="text" id="prenom" name="prenom" [(ngModel)]="employe.prenom" required #prenom="ngModel"
-                pattern="[A-Za-z ]+" (input)="validateField(prenom)">
+                pattern="[A-Za-z ]+" (input)="validateField(prenom)"  placeholder="Entrez le prénom " class="form-control">
           <div *ngIf="prenom.invalid && prenom.touched" class="error-message">Le prénom ne peut contenir que des lettres et des espaces.</div>
         </div>
       </div>
@@ -1033,65 +1033,84 @@
         <div class="form-group">
           <label for="email">Email <span class="required">*</span></label>
           <input type="email" id="email" name="email" [(ngModel)]="employe.email" required #email="ngModel"
-                (input)="validateField(email)">
+                (input)="validateField(email)"  placeholder="Entrez l'email" class="form-control">
           <div *ngIf="email.invalid && email.touched" class="error-message">L'email doit être valide.</div>
         </div>
 
         <div class="form-group">
           <label for="telephone">Téléphone <span class="required">*</span></label>
           <input type="text" id="telephone" name="telephone" [(ngModel)]="employe.telephone" required #telephone="ngModel"
-                pattern="^(77|78|76|75)[0-9]{7}$" (input)="validateField(telephone)">
+                pattern="^(77|78|76|75)[0-9]{7}$" (input)="validateField(telephone)"  placeholder="Entrez le téléphone" class="form-control">
           <div *ngIf="telephone.invalid && telephone.touched" class="error-message">
             Le téléphone doit comporter 9 chiffres et commencer par 77, 78, 76, ou 75.
           </div>
         </div>
       </div>
-      <div class="form-row">
-        <div class="form-group">
-          <label for="adresse">Adresse <span class="required">*</span></label>
-          <input type="text" id="adresseEmploye" name="adresse" [(ngModel)]="employe.adresse" required #adresse="ngModel">
-        </div>
+     <div class="form-row">
+  <!-- Champ Adresse -->
+  <div class="form-group">
+    <label for="adresse">Adresse <span class="required">*</span></label>
+    <input type="text" id="adresseEmploye" name="adresse" [(ngModel)]="employe.adresse" required #adresse="ngModel" minlength="5" (blur)="validateField(adresse)"  placeholder="Entrez l'adresse"  class="form-control">
+    <div *ngIf="adresse.invalid && adresse.touched" class="error-message">
+      L'adresse est requise et doit comporter au moins 5 caractères.
+    </div>
+  </div>
 
-        <div class="form-group">
-          <label for="fonction">Fonction <span class="required">*</span></label>
-          <input type="text" id="fonction" name="fonction" [(ngModel)]="employe.fonction" required #fonction="ngModel"
-                pattern="[A-Za-z ]+" (input)="validateField(fonction)">
-          <div *ngIf="fonction.invalid && fonction.touched" class="error-message">La fonction ne peut contenir que des lettres et des espaces.</div>
-        </div>
-      </div>
+  <!-- Champ Fonction -->
+  <div class="form-group">
+    <label for="fonction">Fonction <span class="required">*</span></label>
+    <input type="text" id="fonction" name="fonction" [(ngModel)]="employe.fonction" required #fonction="ngModel"
+           pattern="[A-Za-z ]+" (blur)="validateField(fonction)"  placeholder="Entrez le fonction" class="form-control">
+    <div *ngIf="fonction.invalid && fonction.touched" class="error-message">
+      La fonction ne peut contenir que des lettres et des espaces.
+    </div>
+  </div>
+</div>
+
       <div class="form-row">
-        <div class="form-group">
+        <!-- Sélection du rôle -->
+        <div class="form-group ">
           <label for="role">Rôle <span class="required">*</span></label>
-          <select id="role" name="role" [(ngModel)]="employe.role" required #role="ngModel">
+          <select id="role" name="role" [(ngModel)]="employe.role" required #role="ngModel" class="form-control">
+            <option value="" disabled selected>Sélectionnez un rôle</option>
             <option value="admin">Admin</option>
-            <option value="utilisateur">Employe</option>
+            <option value="utilisateur">Employé</option>
           </select>
-          <div *ngIf="role.invalid && role.touched" class="error-message">Le rôle est requis.</div>
+          <div *ngIf="role.invalid && role.touched" class="error-message text-danger">
+            Le rôle est requis.
+          </div>
         </div>
-
-        <div class="form-group">
+      
+        <!-- Mot de passe -->
+        <div class="form-group col-md-6">
           <label for="password">Mot de passe <span class="required">*</span></label>
-          <div class="password-wrapper">
+          <div class="password-wrapper position-relative">
             <input
               [type]="showPassword ? 'text' : 'password'"
               id="password"
               name="password"
+              class="form-control"
               [(ngModel)]="employe.password"
               required
-              #password="ngModel">
-            <span (click)="togglePassword()" class="eye-icon">
+              minlength="6"
+              #password="ngModel"
+              placeholder="Mot de passe"
+            />
+            <span (click)="togglePassword()" class="eye-icon position-absolute" style="right: 10px; top: 50%; transform: translateY(-50%); cursor: pointer;">
               <i class="fa" [ngClass]="showPassword ? 'fa-eye-slash' : 'fa-eye'"></i>
             </span>
           </div>
-          <div *ngIf="password.invalid && password.touched" class="error-message">
-            Le mot de passe est requis.
+          <div *ngIf="password.invalid && password.touched" class="error-message text-danger">
+            Le mot de passe est requis et doit comporter au moins 8 caractères.
           </div>
         </div>
       </div>
-
+      
+      <div class="form-row">
       <div class="form-group">
         <label for="photo">Photo</label>
-        <input type="file" id="photo" name="photo" (change)="onFileSelected($event)">
+        <input type="file" id="photo" name="photo" (change)="onFileSelected($event)"  class="form-control">
+      </div>
       </div>
 
       <div class="modal-footer">
@@ -1107,66 +1126,69 @@
   <div class="custom-modal-content">
     <h2>Ajouter un Apprenant</h2>
     <form (ngSubmit)="onSubmitForm()" #apprenantForm="ngForm">
-      <div class="form-group">
         <div class="form-row">
-          <label for="nomApprenant">Nom <span class="required">*</span> </label>
-          <input type="text" id="nomApprenant" name="nom" [(ngModel)]="apprenant.nom" required #nomApprenant="ngModel"
-                pattern="[A-Za-z ]+" (input)="validateField(nomApprenant)">
-          <div *ngIf="nomApprenant.invalid && nomApprenant.touched" class="error-message">Le nom ne peut contenir que des lettres et des espaces.</div>
-
-          <div class="form-group">
-            <label for="prenomApprenant">Prénom  <span class="required">*</span> </label>
-            <input type="text" id="prenomApprenant" name="prenom" [(ngModel)]="apprenant.prenom" required #prenomApprenant="ngModel"
-                  pattern="[A-Za-z ]+" (input)="validateField(prenomApprenant)">
-            <div *ngIf="prenomApprenant.invalid && prenomApprenant.touched" class="error-message">Le prénom ne peut contenir que des lettres et des espaces.</div>
-          </div>
+                  <div class="form-group">
+                    <label for="nomApprenant">Nom <span class="required">*</span> </label>
+                    <input type="text" id="nomApprenant" name="nom" [(ngModel)]="apprenant.nom" required #nomApprenant="ngModel"
+                          pattern="[A-Za-z ]+" (input)="validateField(nomApprenant)"  placeholder="Entrez le nom"  class="form-control">
+                    <div *ngIf="nomApprenant.invalid && nomApprenant.touched" class="error-message">Le nom ne peut contenir que des lettres et des espaces.</div>
+                    </div>
+                    <div class="form-group">
+                      <label for="prenomApprenant">Prénom  <span class="required">*</span> </label>
+                      <input type="text" id="prenomApprenant" name="prenom" [(ngModel)]="apprenant.prenom" required #prenomApprenant="ngModel"
+                            pattern="[A-Za-z ]+" (input)="validateField(prenomApprenant)"  placeholder="Entrez le prénom"  class="form-control">
+                      <div *ngIf="prenomApprenant.invalid && prenomApprenant.touched" class="error-message">Le prénom ne peut contenir que des lettres et des espaces.</div>
+                    </div>
         </div>
-        <div class="form-row">
-          <div class="form-group">
-            <label for="emailApprenant">Email <span class="required">*</span></label>
-            <input type="email" id="emailApprenant" name="email" [(ngModel)]="apprenant.email" required #emailApprenant="ngModel"
-                  (input)="validateField(emailApprenant)">
-            <div *ngIf="emailApprenant.invalid && emailApprenant.touched" class="error-message">L'email doit être valide.</div>
-          </div>
+              <div class="form-row">
+                    <div class="form-group">
+                      <label for="emailApprenant">Email <span class="required">*</span></label>
+                      <input type="email" id="emailApprenant" name="email" [(ngModel)]="apprenant.email" required #emailApprenant="ngModel"
+                            (input)="validateField(emailApprenant)"  placeholder="Entrez l'email" class="form-control">
+                      <div *ngIf="emailApprenant.invalid && emailApprenant.touched" class="error-message">L'email doit être valide.</div>
+                    </div>
 
-          <div class="form-group">
-            <label for="telephoneApprenant">Téléphone <span class="required">*</span></label>
-            <input type="text" id="telephoneApprenant" name="telephone" [(ngModel)]="apprenant.telephone" required #telephoneApprenant="ngModel"
-                  pattern="^(77|78|76|75)[0-9]{7}$" (input)="validateField(telephoneApprenant)">
-            <div *ngIf="telephoneApprenant.invalid && telephoneApprenant.touched" class="error-message">
-              Le téléphone doit comporter 9 chiffres et commencer par 77, 78, 76, ou 75.
+                    <div class="form-group">
+                      <label for="telephoneApprenant">Téléphone <span class="required">*</span></label>
+                      <input type="text" id="telephoneApprenant" name="telephone" [(ngModel)]="apprenant.telephone" required #telephoneApprenant="ngModel"
+                            pattern="^(77|78|76|75)[0-9]{7}$" (input)="validateField(telephoneApprenant)"  placeholder="Entrez le téléphone" class="form-control">
+                      <div *ngIf="telephoneApprenant.invalid && telephoneApprenant.touched" class="error-message">
+                        Le téléphone doit comporter 9 chiffres et commencer par 77, 78, 76, ou 75.
+                      </div>
+                    </div>
+             </div>
+              <div class="form-row">
+                    <div class="form-group">
+                      <label for="adresseApprenant">Adresse <span class="required">*</span></label>
+                      <input type="text" id="adresseApprenant" name="adresse" [(ngModel)]="apprenant.adresse" required #adresseApprenant="ngModel"  placeholder="Entrez l'adresse"  class="form-control">
+                    </div>
+
+                    <div class="form-group">
+                      <label for="roleApprenant">Rôle <span class="required">*</span></label>
+                      <select id="roleApprenant" name="role" [(ngModel)]="apprenant.role" required #roleApprenant="ngModel" class="form-control" >
+                        <option value="" disabled selected>Sélectionnez un rôle</option>
+                        <option value="" disabled selected>Sélectionnez un rôle</option>
+                        <option value="apprenant">Apprenant</option>
+                        <option value="admin">Admin</option>
+                      </select>
+                      <div *ngIf="roleApprenant.invalid && roleApprenant.touched" class="error-message">Le rôle est requis.</div>
+                    </div>
+
+              </div>
+               
+               <div class="form-row">
+                  <div class="form-group">
+                    <label for="photoApprenant">Photo <span class="required">*</span></label>
+                    <input type="file" id="photo" name="photo" (change)="onFileSelected($event)"  class="form-control">
+                  </div>
+               </div>
+                  <div class="modal-footer">
+                    <button type="button" class="cancel-button" (click)="closeModal()">Annuler</button>
+                    <button type="submit" [disabled]="apprenantForm.invalid" class="submit-button">Ajouter</button>
+                  </div>
+              
+              </form>
             </div>
-          </div>
-        </div>
-        <div class="form-row">
-          <div class="form-group">
-            <label for="adresseApprenant">Adresse <span class="required">*</span></label>
-            <input type="text" id="adresseApprenant" name="adresse" [(ngModel)]="apprenant.adresse" required #adresseApprenant="ngModel">
-          </div>
-
-          <div class="form-group">
-            <label for="roleApprenant">Rôle <span class="required">*</span></label>
-            <select id="roleApprenant" name="role" [(ngModel)]="apprenant.role" required #roleApprenant="ngModel">
-              <option value="apprenant">Apprenant</option>
-              <option value="admin">Admin</option>
-            </select>
-            <div *ngIf="roleApprenant.invalid && roleApprenant.touched" class="error-message">Le rôle est requis.</div>
-          </div>
-        </div>
-
-        <div class="form-group">
-          <label for="photoApprenant">Photo <span class="required">*</span></label>
-          <input type="file" id="photo" name="photo" (change)="onFileSelected($event)">
-        </div>
-
-        <div class="modal-footer">
-          <button type="button" class="cancel-button" (click)="closeModal()">Annuler</button>
-          <button type="submit" [disabled]="apprenantForm.invalid" class="submit-button">Ajouter</button>
-        </div>
-      </div>
-    </form>
-  </div>
-</div>
 
 
         

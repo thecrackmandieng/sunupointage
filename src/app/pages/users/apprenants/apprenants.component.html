@@ -34,7 +34,7 @@
             </thead>
             <tbody>
                 <!-- Affichage des apprenants -->
-                <tr *ngFor="let apprenant of apprenants">
+                <tr *ngFor="let apprenant of displayedApprenants">
                     <td>
                         <div class="name-checkbox-container">
                             <input
@@ -99,13 +99,13 @@
             Bloquer Sélection
         </button>
     </div>
-
     <div class="pagination">
-        <button (click)="previousPage()">Précédent</button>
-        <span>Page {{ currentPages }}</span>
-        <button (click)="nextPage()">Suivant</button>
-      </div>
-
+        <button (click)="changePage(page - 1)" [disabled]="page === 1">Précédent</button>
+        <span>Page {{ page }} sur {{ Math.ceil(totalApprenants / size) }}</span>
+        <button (click)="changePage(page + 1)" [disabled]="page === Math.ceil(totalApprenants / size)">Suivant</button>
+    </div>
+    
+      
     <!-- Modal de détails de l'apprenant -->
     <div *ngIf="showApprenantModal" class="apprenant-modal">
         <div class="apprenant-modal-content">

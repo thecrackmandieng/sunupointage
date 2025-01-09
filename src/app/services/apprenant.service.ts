@@ -30,7 +30,7 @@ export class ApprenantService {
   }
 
  
-  getApprenantsByCohorte(id: string): Observable<Apprenant[]> {
+  getApprenantsByCohorte(id: string ): Observable<Apprenant[]> {
     return this.http.get<{ apprenants: Apprenant[] }>(`${this.apiUrlCohortes}/${id}/apprenants`).pipe(
       map((response) => {
         if (response && response.apprenants) {

@@ -44,11 +44,12 @@ export class ApprenantsComponent implements OnInit {
   selectedCohorte: string = '677ac6345a827b1ad506f0d3';
   selectedApprenants: Apprenant[] = [];
   page: number = 1;
-  size: number = 6;
+  size: number = 5;
   apprenant: any = null; // Pour stocker les informations de l'apprenant
   showModal: boolean = false; // Variable pour contrôler la visibilité du modal
 
   currentPages: number = 1;
+  totalApprenants: number = 6;  // Nombre total d'apprenants
 
 
   notificationMessage: string = '';
@@ -60,6 +61,7 @@ export class ApprenantsComponent implements OnInit {
   errorMessages: string[] = []; // Contient les messages d'erreurs de validatio
 
   isLoading: boolean = false;  // Ajoutez cette ligne pour gérer le loader
+  displayedApprenants: Apprenant[] = []; // Apprenants affichés pour la page actuelle
 
 
    // Méthode pour fermer le modal
@@ -89,7 +91,6 @@ export class ApprenantsComponent implements OnInit {
   loadCohortes(): void {
     this.apprenantService.getCohortes().subscribe(
       (data: Cohorte[]) => {
-        console.log('Liste des cohortes :', data);
         this.cohortes = data;
       },
       (error) => {
@@ -101,23 +102,32 @@ export class ApprenantsComponent implements OnInit {
   loadApprenants(): void {
     this.apprenantService.getApprenantsByCohorte(this.selectedCohorte).subscribe(
       (response: Apprenant[]) => {
-        console.log('Réponse complète :', response);
-        if (response && Array.isArray(response)) {
-          this.apprenants = response.map((apprenant: Apprenant) => ({
-            ...apprenant,
-            selected: false, // Default value
-          }));
-        } else {
-          console.error('Format de réponse inattendu :', response);
-          this.apprenants = [];
-        }
+        this.apprenants = response || [];
+        this.totalApprenants = this.apprenants.length;
+        this.updateDisplayedApprenants(); // Initialiser les apprenants affichés
       },
       (error) => {
         console.error('Erreur lors de la récupération des apprenants :', error);
         this.apprenants = [];
+        this.displayedApprenants = []; // Réinitialiser en cas d'erreur
       }
     );
   }
+  
+
+  updateDisplayedApprenants(): void {
+    const startIndex = (this.page - 1) * this.size;
+    const endIndex = startIndex + this.size;
+    this.displayedApprenants = this.apprenants.slice(startIndex, endIndex);
+  }
+
+  changePage(newPage: number): void {
+    if (newPage >= 1 && newPage <= Math.ceil(this.totalApprenants / this.size)) {
+        this.page = newPage;
+        this.updateDisplayedApprenants(); // Mettre à jour les apprenants affichés
+    }
+}
+
   onCohorteChange(): void {
     if (this.selectedCohorte) {
       this.loadApprenants();
@@ -378,7 +388,8 @@ importApprenantCSV(file: File): void {
     }
   }
 
-
-
-
+  getTotalPages(): number {
+    return Math.ceil(this.totalApprenants / this.size);
+  }
+  Math = Math;
 }

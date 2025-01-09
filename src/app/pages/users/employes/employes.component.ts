@@ -12,10 +12,12 @@ export interface Employe {
   prenom: string;
   email: string;
   telephone: string;
+  matricule: string;
   adresse?: string; // Facultatif si non toujours présent
   photo?: string;   // Facultatif
   fonction?: string; // Facultatif
   selected?: boolean; // Ajouté pour la gestion des cases à cocher
+  is_active: true;
 }
 
 
@@ -42,7 +44,10 @@ export class EmployesComponent {
 
   selectedEmployes: any[] = [];
   page: number = 1;
-  size: number = 10;
+  size: number = 4;
+  totalEmployes: number = 0; // Total des employés
+displayedEmployes: Employe[] = []; // Employés affichés pour la page actuelle
+
   employeForm!: FormGroup;
 
   currentPages: number = 1;
@@ -115,6 +120,7 @@ export class EmployesComponent {
     if (!this.selectedDepartement) {
       console.warn('Aucun département sélectionné pour charger les employés.');
       this.employes = [];
+      this.displayedEmployes = [];
       return;
     }
   
@@ -126,18 +132,28 @@ export class EmployesComponent {
             ...employe,
             selected: false, // Ajout d'une propriété par défaut si nécessaire
           }));
+          this.totalEmployes = this.employes.length; // Mettre à jour le total
+          this.updateDisplayedEmployes(); // Mettre à jour les employés affichés
         } else {
           console.error('Format de réponse inattendu ou liste d’employés vide :', response);
           this.employes = [];
+          this.displayedEmployes = [];
         }
       },
       (error) => {
         console.error('Erreur lors de la récupération des employés :', error);
-        // Réinitialiser la liste des employés en cas d'erreur
         this.employes = [];
+        this.displayedEmployes = [];
       }
     );
   }
+  
+  updateDisplayedEmployes(): void {
+    const startIndex = (this.page - 1) * this.size;
+    const endIndex = startIndex + this.size;
+    this.displayedEmployes = this.employes.slice(startIndex, endIndex);
+  }
+  
   
   // Méthode déclenchée lorsqu’un département est sélectionné
   onDepartementChange(): void {
@@ -284,17 +300,7 @@ bulkBlock(): void {
   );
 }
 
-  previousPage(): void {
-    if (this.page > 1) {
-      this.page--;
-      this.loadEmployes();
-    }
-  }
 
-  nextPage(): void {
-    this.page++;
-    this.loadEmployes();
-  }
 
   getInitials(prenom: string, nom: string): string {
     return `${prenom[0]}${nom[0]}`.toUpperCase();  // Retourne les initiales du prénom et du nom
@@ -366,5 +372,22 @@ bulkBlock(): void {
     this.isEditing = false;
   }
 
+  previousPage(): void {
+    if (this.page > 1) {
+      this.page--;
+      this.updateDisplayedEmployes();
+    }
+  }
+  
+  nextPage(): void {
+    const totalPages = Math.ceil(this.totalEmployes / this.size);
+    if (this.page < totalPages) {
+      this.page++;
+      this.updateDisplayedEmployes();
+    }
+
  
   }
+
+  Math = Math;
+}
