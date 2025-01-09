@@ -9,30 +9,36 @@
         <form class="w-100" (ngSubmit)="onSubmit()" #loginForm="ngForm">
           
           <!-- Champ Email -->
-          <div class="form-group mb-3">
+          <div class="form-group mb-3 position-relative">
             <label for="email" class="form-label text-white fw-bold">Email</label>
-            <input type="email" id="email" name="email" class="form-control bg-transparent w-100 text-white border-0 border-bottom rounded-0"
+            <input type="email" id="email" name="email" 
+                   class="form-control bg-transparent w-100 text-white border-0 border-bottom rounded-0"
                    placeholder="Entrez votre email" required email #email="ngModel" [(ngModel)]="user.email">
-            <div *ngIf="email.invalid && email.touched" class="text-danger">
-              <small *ngIf="email.errors?.['required']">L'email est requis.</small>
-              <small *ngIf="email.errors?.['email']">Veuillez entrer un email valide.</small>
-            </div>
+            <small *ngIf="email.invalid && email.touched && email.errors?.['required']" class="text-danger error-message">
+              L'email est requis.
+            </small>
+            <small *ngIf="email.invalid && email.touched && email.errors?.['email']" class="text-danger error-message">
+              Veuillez entrer un email valide.
+            </small>
           </div>
 
           <!-- Champ Mot de passe -->
-          <div class="form-group mb-3">
+          <div class="form-group mb-3 position-relative">
             <label for="password" class="form-label text-white fw-bold">Mot de passe</label>
             <div class="d-flex align-items-center">
-              <input [type]="showPassword ? 'text' : 'password'" id="password" name="password" class="form-control w-100  text-white border-0 border-bottom rounded-0"
+              <input [type]="showPassword ? 'text' : 'password'" id="password" name="password" 
+                     class="form-control w-100 text-white border-0 border-bottom rounded-0"
                      placeholder="Entrez votre mot de passe" required minlength="8" #password="ngModel" [(ngModel)]="user.password">
               <span class="eye-icon ms-2" (click)="togglePasswordVisibility()">
                 <i [ngClass]="showPassword ? 'fa fa-eye-slash' : 'fa fa-eye'"></i>
               </span>
             </div>
-            <div *ngIf="password.invalid && password.touched" class="text-danger">
-              <small *ngIf="password.errors?.['required']">Le mot de passe est requis.</small>
-              <small *ngIf="password.errors?.['minlength']">Le mot de passe doit comporter au moins 8 caractères.</small>
-            </div>
+            <small *ngIf="password.invalid && password.touched && password.errors?.['required']" class="text-danger error-message">
+              Le mot de passe est requis.
+            </small>
+            <small *ngIf="password.invalid && password.touched && password.errors?.['minlength']" class="text-danger error-message">
+              Le mot de passe doit comporter au moins 8 caractères.
+            </small>
           </div>
 
           <!-- Bouton de connexion -->
@@ -41,14 +47,16 @@
             CONNEXION
           </button>
 
-          <!-- Message d'erreur -->
+          <!-- Message d'erreur global -->
           <div *ngIf="errorMessage" class="alert alert-danger mt-3">
             {{ errorMessage }}
           </div>
 
-          <!-- Lien Mot de passe oublié -->
+         <!-- Lien modifié pour ouvrir un modal -->
           <div class="text-center mt-2">
-            <a href="/reset-password" class="text-white" style="text-decoration: none; font-size: 0.9rem;">Mot de passe oublié ?</a>
+            <a href="#" class="text-white" style="text-decoration: none; font-size: 0.9rem;" data-bs-toggle="modal" data-bs-target="#forgotPasswordModal">
+              Mot de passe oublié ?
+            </a>
           </div>
         </form>
       </div>
@@ -56,5 +64,70 @@
 
     <!-- Partie droite : Image de fond -->
     <div class="right-section"></div>
+  </div>
+</div>
+
+
+<!-- Modal -->
+<div
+  class="modal fade"
+  id="forgotPasswordModal"
+  tabindex="-1"
+  aria-labelledby="forgotPasswordModalLabel"
+  aria-hidden="true"
+>
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="forgotPasswordModalLabel">Mot de passe oublié</h5>
+        <button
+          type="button"
+          class="btn-close"
+          data-bs-dismiss="modal"
+          aria-label="Close"
+        ></button>
+      </div>
+      <div class="modal-body">
+        <p>Veuillez entrer votre adresse email pour réinitialiser votre mot de passe :</p>
+        <form (ngSubmit)="onForgotPasswordSubmit()" #forgotPasswordForm="ngForm">
+          <!-- Champ Email -->
+          <div class="mb-3">
+            <label for="email" class="form-label">Adresse Email</label>
+            <input
+              type="email"
+              class="form-control"
+              id="email"
+              name="email"
+              placeholder="Votre email"
+              required
+              [(ngModel)]="forgotPasswordEmail"
+              #email="ngModel"
+            />
+            <small
+              *ngIf="email.invalid && email.touched && email.errors?.['required']"
+              class="text-danger"
+            >
+              L'email est requis.
+            </small>
+            <small
+              *ngIf="email.invalid && email.touched && email.errors?.['email']"
+              class="text-danger"
+            >
+              Veuillez entrer un email valide.
+            </small>
+          </div>
+          <button
+            type="submit"
+            class="btn btn-primary"
+            [disabled]="forgotPasswordForm.invalid || isLoading"
+          >
+            <span *ngIf="isLoading" class="spinner-border spinner-border-sm me-2"></span>
+            Envoyer
+          </button>
+        </form>
+        <div *ngIf="successMessage" class="alert alert-success mt-3">{{ successMessage }}</div>
+        <div *ngIf="errorMessage" class="alert alert-danger mt-3">{{ errorMessage }}</div>
+      </div>
+    </div>
   </div>
 </div>

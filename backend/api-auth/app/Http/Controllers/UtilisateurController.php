@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Models\Utilisateur;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use App\Models\Pointage;
+
 
 class UtilisateurController extends Controller
 {
@@ -57,8 +59,8 @@ class UtilisateurController extends Controller
             'telephone' => 'nullable|string|max:15',
             'photo' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
             'email' => 'required|email|unique:utilisateurs,email',
-            'password' => 'required|string|min:6',
-            'role' => 'required|string|in:administrateur,vigile', // Limité à ces deux rôles
+            'password' => 'nullable|string|min:6',
+            'role' => 'required|string|in:employe,apprenant', // Limité à ces deux rôles
             'departement' => 'nullable|string|max:255', // Optionnel pour vigiles
             'cohorte' => 'nullable|string|max:255', // Optionnel pour apprenants
         ]);
@@ -72,7 +74,7 @@ class UtilisateurController extends Controller
 
             // Gestion de l'upload de la photo
             if ($request->hasFile('photo')) {
-                $path = $request->file('photo')->store('photos', 'public');
+                $path = $request->file('photo')->store('photos', 'public','assets');
                 $utilisateur->photo = $path;
             }
 
@@ -92,6 +94,28 @@ class UtilisateurController extends Controller
         }
     }
 
+    public function uploadCSV(Request $request)
+    {
+        // Validation du fichier CSV
+        $request->validate([
+            'file' => 'required|mimes:csv,txt|max:10240', // 10MB maximum
+        ]);
+
+        // Récupérer le fichier
+        $file = $request->file('file');
+
+        // Si vous souhaitez stocker le fichier temporairement
+        $path = $file->storeAs('csv_uploads', $file->getClientOriginalName());
+
+        // Vous pouvez soit lire et traiter le fichier directement, soit utiliser Laravel Excel pour traiter le CSV
+        // Exemple avec Laravel Excel (assurez-vous d'avoir installé la dépendance)
+        Excel::import(new ApprenantsImport, storage_path('app/' . $path));
+
+        // Après le traitement, vous pouvez supprimer le fichier si nécessaire
+        Storage::delete($path);
+
+        return response()->json(['message' => 'Fichier CSV importé avec succès.']);
+    }
     // Méthode register mise à jour
     public function register(Request $request)
     {
@@ -114,6 +138,55 @@ class UtilisateurController extends Controller
         }
     }
 
+
+    
+    public function listerPointages()
+    {
+        try {
+            // Récupérer tous les pointages triés par date décroissante
+            $pointages = Pointage::orderBy('date', 'desc')->get();
+    
+            // Formatage des données et calcul du statut
+            $pointagesFormates = $pointages->map(function ($pointage) {
+                // Calculer le statut en fonction des horaires de pointage
+                $status = 'Absent'; // Valeur par défaut
+                $color = 'red'; // Valeur par défaut pour couleur (rouge pour Absent)
+    
+                // Vérifier si firstTime et secondTime existent
+                if ($pointage->firstTime) {
+                    $firstTime = strtotime($pointage->firstTime);
+                    $startWorkTime = strtotime('08:00:00'); // Heure limite pour être "Présent"
+                    
+                    if ($firstTime > $startWorkTime) {
+                        $status = 'Retard'; // Si pointage avant 08h00, il est en retard
+                        $color = 'orange'; // Couleur orange pour Retard
+                    } else {
+                        $status = 'Présent'; // Si pointage après 08h00, il est présent
+                        $color = 'green'; // Couleur verte pour Présent
+                    }
+                }
+    
+                return [
+                    'nom' => $pointage->nom ?? '', // Vérification pour éviter les valeurs nulles
+                    'prenom' => $pointage->prenom ?? '', // Vérification pour éviter les valeurs nulles
+                    'date' => $pointage->date,
+                    'firstTime' => $pointage->firstTime,
+                    'secondTime' => $pointage->secondTime,
+                    'status' => $status, // Le statut calculé
+                    'color' => $color,   // La couleur en fonction du statut
+                ];
+            });
+    
+            return response()->json($pointagesFormates);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Erreur lors de la récupération des pointages.',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
+    }
+    
+    
     // Mettre à jour un utilisateur
     public function update(Request $request, $id)
     {
@@ -162,7 +235,59 @@ class UtilisateurController extends Controller
             return response()->json(['message' => 'Erreur lors de la mise à jour.', 'error' => $e->getMessage()], 500);
         }
     }
+    public function updatePointage(Request $request, $id)
+    {
+        $request->validate([
+            'nom' => 'required|string|max:255',
+            'prenom' => 'required|string|max:255',
+            'date' => 'required|date',
+            'firstTime' => 'nullable|string', // Peut être nullable si non fourni
+            'secondTime' => 'nullable|string', // Peut être nullable si non fourni
+        ]);
+    
+        try {
+            // Rechercher le pointage correspondant à l'ID
+            $pointage = Pointage::find($id);
+    
+            if (!$pointage) {
+                return response()->json(['message' => 'Pointage non trouvé.'], 404);
+            }
+    
+            // Mise à jour des champs (seulement si les données sont fournies)
+            if ($request->filled('nom')) {
+                $pointage->nom = $request->nom;
+            }
+            if ($request->filled('prenom')) {
+                $pointage->prenom = $request->prenom;
+            }
+            if ($request->filled('date')) {
+                $pointage->date = $request->date;
+            }
+            if ($request->filled('firstTime')) {
+                $pointage->firstTime = $request->firstTime;
+            }
+            if ($request->filled('secondTime')) {
+                $pointage->secondTime = $request->secondTime;
+            }
+    
+            // Sauvegarder les modifications
+            $pointage->save();
+    
+            return response()->json([
+                'message' => 'Pointage mis à jour avec succès.',
+                'pointage' => $pointage
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Erreur lors de la mise à jour du pointage.',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+    
+    
 
+    
     // Supprimer un utilisateur
     public function destroy($id)
     {
