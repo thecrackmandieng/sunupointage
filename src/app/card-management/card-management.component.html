@@ -1,14 +1,17 @@
-<app-sidebar></app-sidebar> <!-- Utilisation du composant Sidebar -->
+<app-sidebar></app-sidebar>
 
 <div class="card-management-container">
-  <div class="card">
-    <div class="card-header text-white">
-      <h3 class="card-title text-center">Gestion des cartes</h3>
+  <div class="card shadow-sm">
+    <!-- Titre de la carte -->
+    <div class="card-header">
+      <h3 class="mb-0">Gestion des cartes</h3>
     </div>
+
+    <!-- Contenu de la carte -->
     <div class="card-body">
       <div *ngIf="loading" class="loading">Chargement des employés...</div>
-      
-      <table class="table table-striped" *ngIf="!loading">
+
+      <table class="table table-striped mt-3" *ngIf="!loading">
         <thead>
           <tr>
             <th>Photo</th>
@@ -23,10 +26,11 @@
         <tbody>
           <tr *ngFor="let employee of paginatedEmployees">
             <td>
-              <img 
-                [src]="employee.photo" 
-                alt="{{ employee.prenom }} {{ employee.nom }}" 
-                style="width: 50px; height: 50px; border-radius: 50%;">
+              <img
+                [src]="'http://127.0.0.1:8000/photos/' + employee.photo"
+                alt="{{ employee.prenom }} {{ employee.nom }}"
+                style="width: 50px; height: 50px; border-radius: 50%;"
+              >
             </td>
             <td>{{ employee.prenom }} {{ employee.nom }}</td>
             <td>{{ employee.email }}</td>
@@ -34,16 +38,35 @@
             <td>{{ employee.matricule }}</td>
             <td>{{ employee.cardID }}</td>
             <td>
-              <button class="btn btn-success btn-sm" (click)="openAssignCard(employee.id)">Assigner</button>
+              <button
+                class="btn btn-success btn-sm"
+                (click)="openAssignCard(employee.id)"
+              >
+                Assigner
+              </button>
             </td>
           </tr>
         </tbody>
       </table>
-    </div>
-    <div class="card-footer text-muted d-flex justify-content-between">
-      <button class="btn btn-secondary btn-sm" [disabled]="currentPage === 1" (click)="previousPage()">Précédent</button>
-      <span>Page {{ currentPage }} sur {{ totalPages }}</span>
-      <button class="btn btn-secondary btn-sm" [disabled]="currentPage === totalPages" (click)="nextPage()">Suivant</button>
+
+      <!-- Pagination -->
+      <div class="pagination d-flex justify-content-center mt-3">
+        <button
+          class="btn btn-outline-primary me-2"
+          [disabled]="currentPage === 1"
+          (click)="previousPage()"
+        >
+          Précédent
+        </button>
+        <span>Page {{ currentPage }} sur {{ totalPages }}</span>
+        <button
+          class="btn btn-outline-primary ms-2"
+          [disabled]="currentPage === totalPages"
+          (click)="nextPage()"
+        >
+          Suivant
+        </button>
+      </div>
     </div>
   </div>
 </div>

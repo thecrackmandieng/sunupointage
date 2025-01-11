@@ -1,12 +1,10 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { CommonModule, DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { DatePipe } from '@angular/common';
 import { AuthService } from '../../auth.service';
 import { RFIDService } from '../../rfid.service';
-import { Router } from '@angular/router'; // Router service
-import { ServoService } from '../../servo.service'; // Importer le service ServoService
-
+import { Router } from '@angular/router';
+import { ServoService } from '../../servo.service';
 
 declare var bootstrap: any; // Déclaration globale pour Bootstrap
 
@@ -22,42 +20,38 @@ export class DashboardComponent implements OnInit, OnDestroy {
   employees: any[] = [];
   filteredEmployees: any[] = [];
   paginatedEmployees: any[] = [];
-  errorMessage: string | null = null; // Message d'erreur pour la carte invalide
+  errorMessage: string | null = null;
 
-
-  searchQuery: string = ''; // Recherche par téléphone
-  selectedDepartment: string = ''; // Filtrage par département
+  searchQuery: string = '';
+  selectedDepartment: string = '';
   departments: string[] = ['Departement1', 'Departement2', 'Cohorte1'];
 
-  isSidebarOpen: boolean = true; // État de la sidebar
+  isSidebarOpen: boolean = true;
 
-  pageSize: number = 10; // Nombre d'éléments par page
-  currentPage: number = 1; // Page actuelle
-  totalEmployees: number = 0; // Total employés
+  pageSize: number = 10;
+  currentPage: number = 1;
+  totalEmployees: number = 0;
 
-  selectedUser: any = null; // Utilisateur détecté
-  detectedCardInfo: any = null; // Informations de la carte RFID détectée
-  detectionInterval: any = null; // Intervalle pour détecter la carte
-  cardDetected: boolean = false; // Indicateur de détection de carte
+  selectedUser: any = null;
+  detectedCardInfo: any = null;
+  detectionInterval: any = null;
+  cardDetected: boolean = false;
   rfidData: any = null;
 
-
-  currentDateTime: string = ''; // Date et heure en temps réel
+  currentDateTime: string = '';
 
   constructor(
     private authService: AuthService,
     private rfidService: RFIDService,
     private servoService: ServoService,
-    private router: Router // Injection du router service
-    
+    private router: Router
   ) {}
 
   ngOnInit(): void {
     this.fetchEmployees();
-    this.listenForRFID(); // Écouter les événements RFID à l'initialisation
-    this.updateDateTime(); // Initialiser la date et l'heure en temps réel
+    this.listenForRFID();
+    this.updateDateTime();
 
-    // Mise à jour automatique de la date et l'heure toutes les secondes
     this.detectionInterval = setInterval(() => {
       this.updateDateTime();
     }, 1000);
@@ -67,7 +61,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
     if (this.detectionInterval) {
       clearInterval(this.detectionInterval);
     }
-    this.rfidService.stopListeningRFID(); // Fermer la connexion WebSocket proprement
+    this.rfidService.stopListeningRFID();
   }
 
   updateDateTime(): void {
@@ -83,26 +77,22 @@ export class DashboardComponent implements OnInit, OnDestroy {
     });
   }
 
-  /* toggleSidebar() {
+  toggleSidebar(): void {
     this.isSidebarOpen = !this.isSidebarOpen;
-  } */
-    toggleSidebar(): void {
-      this.isSidebarOpen = !this.isSidebarOpen;
-    
-      const angle = this.isSidebarOpen ? 90 : 0; // Angle basé sur l'état de la sidebar
-    
-      this.servoService.setServoAngle(angle).subscribe({
-        next: () => console.log(`Commande envoyée : Servo à ${angle}°`),
-        error: (err: any) => console.error('Erreur lors de l\'envoi de la commande:', err),
-      });
-    }
-    
-  logout() {
-    localStorage.removeItem('token');
-    window.location.href = '/login';
+    const angle = this.isSidebarOpen ? 90 : 0;
+
+    this.servoService.setServoAngle(angle).subscribe({
+      next: () => console.log(`Commande envoyée : Servo à ${angle}°`),
+      error: (err: any) => console.error('Erreur lors de l\'envoi de la commande :', err),
+    });
   }
 
-  fetchEmployees() {
+  logout(): void {
+    localStorage.removeItem('token');
+    this.router.navigate(['/login']);
+  }
+
+  fetchEmployees(): void {
     this.authService.getUsers().subscribe({
       next: (data) => {
         this.employees = data.map((user: any) => ({
@@ -118,63 +108,61 @@ export class DashboardComponent implements OnInit, OnDestroy {
             day: '2-digit',
             hour: '2-digit',
             minute: '2-digit',
-          }), // Ajout de la date et heure actuelles
+          }),
         }));
         this.filteredEmployees = [...this.employees];
         this.totalEmployees = this.filteredEmployees.length;
         this.paginateEmployees();
       },
       error: (err) => {
-        this.errorMessage =
-          'Une erreur est survenue lors du chargement des données.';
+        this.errorMessage = 'Une erreur est survenue lors du chargement des données.';
         console.error(err);
       },
     });
   }
 
-  listenForRFID() {
-    this.rfidService.getRFIDStatus().subscribe((data: any) => {
-      console.log('Données reçues de la carte RFID:', data);
-  
-      if (data && data.user && data.user.nom) {
-        this.detectedCardInfo = data;  // Stocke les informations dans une variable
-        this.selectedUser = this.employees.find(
-          (employee) => employee.nom === data.user.nom
-        );
-  
-        // Si un utilisateur est trouvé, affiche le modal
-        if (this.selectedUser) {
-          this.errorMessage = null;  // Réinitialise le message d'erreur
-          this.showModal();
+  listenForRFID(): void {
+    this.rfidService.getRFIDStatus().subscribe({
+      next: (data: any) => {
+        console.log('Données reçues de la carte RFID :', data);
+
+        if (data?.user?.nom) {
+          this.detectedCardInfo = data;
+          this.selectedUser = this.employees.find(
+            (employee) => employee.nom === data.user.nom
+          );
+
+          if (this.selectedUser) {
+            this.errorMessage = null;
+            this.showModal();
+          } else {
+            this.errorMessage = 'Utilisateur non trouvé pour cette carte.';
+            this.showModal();
+          }
         } else {
-          this.errorMessage = 'Utilisateur non trouvé pour cette carte.';
+          this.errorMessage = 'Carte invalide ou données incorrectes.';
           this.showModal();
-          console.error('Utilisateur non trouvé pour le nom:', data.user.nom);
         }
-      } else {
-        this.errorMessage = 'Carte invalide ou données incorrectes.';
-        this.showModal();
-        console.error('Données invalides reçues:', data);
-      }
+      },
+      error: (err) => console.error('Erreur lors de la réception des données RFID :', err),
     });
   }
-  
-  showModal() {
+
+  showModal(): void {
     const modalElement = document.getElementById('userModal');
     if (!modalElement) {
       console.error('Le modal n\'existe pas dans le DOM.');
       return;
     }
-  
+
     const modalTitle = modalElement.querySelector('.modal-title');
     const modalBody = modalElement.querySelector('.modal-body');
-  
+
     if (this.selectedUser) {
-      // Si l'utilisateur est valide, affiche les informations utilisateur
       if (modalTitle) {
         modalTitle.textContent = `${this.selectedUser.prenom} ${this.selectedUser.nom}`;
       }
-  
+
       if (modalBody) {
         modalBody.innerHTML = `
           <div class="text-center">
@@ -186,11 +174,10 @@ export class DashboardComponent implements OnInit, OnDestroy {
         `;
       }
     } else if (this.errorMessage) {
-      // Si une erreur est présente, affiche le message d'erreur
       if (modalTitle) {
         modalTitle.textContent = 'Erreur de carte';
       }
-  
+
       if (modalBody) {
         modalBody.innerHTML = `
           <div class="text-center">
@@ -199,56 +186,46 @@ export class DashboardComponent implements OnInit, OnDestroy {
         `;
       }
     }
-  
-    // Créer une instance du modal Bootstrap et l'ouvrir
+
     const modal = new bootstrap.Modal(modalElement);
     modal.show();
   }
-  
-  
 
- /*  testModal() {
-    console.log('Test Modal clicked');
-    this.showModal();
-  } */
-
-  acceptUser() {
+  acceptUser(): void {
     if (this.selectedUser) {
-      console.log('Utilisateur accepté:', this.selectedUser);
+      console.log('Utilisateur accepté :', this.selectedUser);
     }
     const modalElement = document.getElementById('userModal');
     if (modalElement) {
       const modal = bootstrap.Modal.getInstance(modalElement);
-      modal.hide(); // Fermer le modal après l'action
+      modal?.hide();
     }
   }
+
   savePointage(): void {
-    if (this.rfidData) {
+    if (this.rfidData && this.detectedCardInfo?.user?.userId) {
       const time = new Date().toISOString();
-      const userId = this.detectedCardInfo?.user?.userId;
-if (!userId) {
-  console.error('Aucun userId trouvé dans les données détectées.');
-  return;
-}
+      const userId = this.detectedCardInfo.user.userId;
 
-
-
-      this.rfidService.savePointage(userId, this.rfidData.rfidUID, status, time).subscribe({
+      this.rfidService.savePointage(userId, this.rfidData.rfidUID, 'accepted', time).subscribe({
         next: (response) => {
           console.log('Pointage enregistré :', response);
           alert('Pointage enregistré avec succès.');
         },
         error: (err) => console.error('Erreur lors de l\'enregistrement du pointage :', err),
       });
+    } else {
+      console.error('Aucun userId ou RFID détecté.');
     }
   }
-  rejectUser() {
+
+  rejectUser(): void {
     alert('Utilisateur rejeté : ' + this.selectedUser?.prenom);
     this.selectedUser = null;
     this.cardDetected = false;
   }
 
-  applyFilters() {
+  applyFilters(): void {
     this.filteredEmployees = this.employees.filter(
       (employee) =>
         (this.selectedDepartment === '' ||
@@ -259,7 +236,7 @@ if (!userId) {
     this.paginateEmployees();
   }
 
-  paginateEmployees() {
+  paginateEmployees(): void {
     const startIndex = (this.currentPage - 1) * this.pageSize;
     const endIndex = startIndex + this.pageSize;
     this.paginatedEmployees = this.filteredEmployees.slice(startIndex, endIndex);
@@ -269,7 +246,7 @@ if (!userId) {
     return Math.ceil(this.filteredEmployees.length / this.pageSize);
   }
 
-  changePage(direction: string) {
+  changePage(direction: string): void {
     if (direction === 'prev' && this.currentPage > 1) {
       this.currentPage--;
     } else if (direction === 'next' && this.currentPage < this.totalPages()) {

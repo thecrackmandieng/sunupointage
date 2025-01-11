@@ -14,15 +14,7 @@
   }
   /* Mise à jour des styles pour une interface plus claire et propre */
 
-  .main-content {
-    margin-left: 100px; /* Décalage pour le contenu */
-    /* Conteneur principal avec CSS Grid */
-      padding: 200px; /* Retirer le padding interne */
-     
-     
-      
 
-  }
   .filter-section {
     margin-bottom: 20px;
     display: flex;

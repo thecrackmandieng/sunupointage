@@ -45,11 +45,12 @@ public function create(Request $request)
         'telephone' => 'required|string|max:9|unique:apprenants,telephone',
         'cohorte_id' => 'required|exists:cohortes,_id',  // Vérification avec _id
         'matricule' => 'nullable|string', // Généré automatiquement si non fourni
-        'password' => 'required|string|min:6',
-        'role' => 'required|string|in:admin,utilisateur', // Rôle autorisé
+        'role' => 'required|string|in:admin,utilisateur,apprenant,employe',
         'card_id' => 'nullable|string|unique:apprenants,card_id', // Optionnel mais unique
         'photo' => 'nullable|file|mimes:jpg,png,jpeg|max:2048', // Validation pour le fichier
+
     ]);
+    $validated['is_active'] = true; // Par défaut actif
 
     // Vérifiez si la cohorte existe
     $cohorte = Cohorte::find($validated['cohorte_id']);
@@ -70,9 +71,7 @@ public function create(Request $request)
         $photoPath = null; // Ou une valeur par défaut
     }
     
-    // Hacher le mot de passe
-    $validated['password'] = Hash::make($validated['password']);
-
+   
     // Créer l'apprenant
     $apprenant = Apprenant::create([
         'nom' => $validated['nom'],
@@ -84,8 +83,14 @@ public function create(Request $request)
         'matricule' => $validated['matricule'],
         'role' => $validated['role'],
         'photo' => $data['photo'] ?? null, // Utilisez une valeur par défaut si `photo` n'existe pas
-        'password' => bcrypt($validated['password']),
+        'is_active' => $validated['is_active'],
+
     ]);
+
+
+        // Mettre à jour le nombre de personnes dans la cohorte après l'ajout d'un apprenant
+         $cohorte->increment('nombre_personnes');  // Cela va incrémenter le champ 'nombre_personnes' de +1
+
 
     // Charger la cohorte liée
     $apprenant->load('cohorte');
@@ -117,23 +122,13 @@ public function create(Request $request)
               return response()->json(['message' => 'Ce numéro de téléphone est déjà attribué.'], 400);
           }
       
-          // Vérification si le card_id est unique
-          $existingCardId = Apprenant::where('card_id', $request->card_id)
-                                     ->where('id', '!=', $apprenant->id)
-                                     ->first();
-          if ($existingCardId) {
-              return response()->json(['message' => 'Ce card_id est déjà utilisé.'], 400);
-          }
-      
+        
           // Validation des données
           $validated = $request->only([
-              'nom', 'prenom', 'email', 'adresse', 'telephone', 'cohorte', 'role', 'card_id'
+              'nom', 'prenom', 'email', 'adresse', 'telephone', 'photo', 'role'
           ]);
       
-          // Si un mot de passe est fourni, on le hache
-          if ($request->has('password')) {
-              $validated['password'] = Hash::make($request->password);
-          }
+        
       
           // Mise à jour de l'apprenant
           $apprenant->update($validated);
@@ -201,6 +196,42 @@ public function create(Request $request)
         return response()->json(['message' => 'Apprenant bloqué avec succès', 'apprenant' => $apprenant], 200);
     }
     
+    // Débloquer plusieurs apprenants
+  public function unblock(Request $request)
+ {
+    // Valider les identifiants des apprenants
+    $validated = $request->validate([
+        'ids' => 'required|array',
+        'ids.*' => 'required|exists:apprenants,id',
+    ]);
+
+    // Récupérer tous les apprenants à débloquer
+    $apprenants = Apprenant::whereIn('id', $validated['ids'])->get();
+
+    // Débloquer chaque apprenant
+    Apprenant::whereIn('id', $validated['ids'])->update(['is_active' => true]);
+
+    return response()->json(['message' => 'Apprenant(s) débloqué(s) avec succès', 'apprenants' => $apprenants], 200);
+}
+
+
+// Débloquer un apprenant
+public function unblockOne($id)
+{
+    // Chercher l'apprenant par ID
+    $apprenant = Apprenant::find($id);
+
+    if (!$apprenant) {
+        return response()->json(['message' => 'Apprenant non trouvé'], 404);
+    }
+
+    // Débloquer l'apprenant en mettant 'is_active' à true
+    $apprenant->update(['is_active' => true]);
+
+    return response()->json(['message' => 'Apprenant débloqué avec succès', 'apprenant' => $apprenant], 200);
+}
+
+
 
     // Supprimer un ou plusieurs apprenants
     public function delete(Request $request)
@@ -209,148 +240,183 @@ public function create(Request $request)
             'ids' => 'required|array',
             'ids.*' => 'required|exists:apprenants,id',
         ]);
-
+    
+        // Récupérer tous les apprenants à supprimer
+        $apprenants = Apprenant::whereIn('id', $validated['ids'])->get();
+    
+        // Supprimer les apprenants
         Apprenant::whereIn('id', $validated['ids'])->delete();
-
+    
+        // Mettre à jour le nombre de personnes dans la cohorte après la suppression des apprenants
+        foreach ($apprenants as $apprenant) {
+            $cohorte = $apprenant->cohorte;  // Récupérer la cohorte associée à l'apprenant
+            if ($cohorte) {
+                $cohorte->decrement('nombre_personnes');  // Décrémenter le nombre de personnes
+            }
+        }
+    
         return response()->json(['message' => 'Apprenant(s) supprimé(s) avec succès'], 200);
     }
+    
 
     // Supprimer un apprenant
     public function deleteOne($id)
     {
+        // Trouver l'apprenant à supprimer
         $apprenant = Apprenant::find($id);
-
+    
         if (!$apprenant) {
             return response()->json(['message' => 'Apprenant non trouvé'], 404);
         }
-
+    
+        // Récupérer la cohorte associée à l'apprenant
+        $cohorte = $apprenant->cohorte;
+    
+        // Supprimer l'apprenant
         $apprenant->delete();
-
+    
+        // Mettre à jour le nombre de personnes dans la cohorte après la suppression de l'apprenant
+        if ($cohorte) {
+            $cohorte->decrement('nombre_personnes');  // Décrémenter le nombre de personnes
+        }
+    
         return response()->json(['message' => 'Apprenant supprimé avec succès'], 200);
     }
+    
 
 
 
-    public function importCsv(Request $request, $cohorteId)
-    {
-        Log::info('Import CSV appelé', ['cohorteId' => $cohorteId]);
     
-        // Validation du fichier CSV
-        $request->validate([
-            'file' => 'required|file|mimes:csv,txt|max:2048', // Validation pour CSV
-        ], [
-            'file.required' => 'Un fichier est requis.',
-            'file.mimes' => 'Le fichier doit être au format CSV ou TXT.',
-            'file.max' => 'Le fichier ne doit pas dépasser 2 Mo.'
-        ]);
-    
-        // Récupérer le fichier téléchargé
-        $file = $request->file('file');
-        Log::info('Fichier CSV reçu', ['file_name' => $file->getClientOriginalName()]);
-    
-        // Lire le fichier CSV
-        try {
-            $csv = Reader::createFromPath($file->getRealPath(), 'r');
-            $csv->setHeaderOffset(0); // Utiliser la première ligne comme en-tête
-            $records = $csv->getRecords(); // Récupérer toutes les lignes
-        } catch (\Exception $e) {
-            Log::error('Erreur lors de la lecture du fichier CSV', ['error' => $e->getMessage()]);
-            return response()->json([
-                'message' => 'Erreur lors de la lecture du fichier CSV. Veuillez vérifier son format.',
-                'error' => $e->getMessage()
-            ], 400);
-        }
-    
-        // Suivi des apprenants ajoutés et ignorés
-        $addedApprenants = [];
-        $ignoredApprenants = [];
-    
-        foreach ($records as $record) {
-            Log::info('Traitement de l\'enregistrement', ['email' => $record['email']]);
-    
-            // Vérification de l'existence de la cohorte et de la validité des données
-            $cohorte = Cohorte::find($cohorteId); // Utiliser $cohorteId passé dans la route
-            if (!$cohorte) {
-                $ignoredApprenants[] = $record['email']; // Ajouter à la liste des ignorés si la cohorte est invalide
-                Log::warning('Cohorte invalide pour l\'enregistrement', ['email' => $record['email'], 'cohorte_id' => $cohorteId]);
-                continue;
-            }
-    
-            $result = $this->createApprenant($record);
-    
-            if ($result === 'duplicate') {
-                // Si un doublon est détecté, ajouter à la liste des ignorés
-                $ignoredApprenants[] = $record['email'];
-                Log::info('Doublon détecté pour l\'email', ['email' => $record['email']]);
-            } else {
-                // Si l'apprenant a été ajouté avec succès, l'ajouter à la liste des ajoutés
-                $addedApprenants[] = $record['email'];
-                Log::info('Apprenant ajouté avec succès', ['email' => $record['email']]);
-            }
-        }
-    
-        $message = 'Importation terminée.';
-        if (!empty($ignoredApprenants)) {
-            $message .= ' Les apprenants suivants ont été ignorés en raison de doublons ou d\'erreurs : ' . implode(', ', $ignoredApprenants);
-        }
-    
-        if (!empty($addedApprenants)) {
-            $message .= ' Les apprenants suivants ont été ajoutés : ' . implode(', ', $addedApprenants);
-        }
-    
-        Log::info('Importation terminée', ['message' => $message]);
-    
+public function importCsv(Request $request)
+{
+    // Validation pour accepter uniquement un fichier CSV
+    $request->validate([
+        'file' => 'required|file|mimes:csv,txt|max:2048', // Validation pour CSV
+    ], [
+        'file.required' => 'Le fichier est requis.',
+        'file.file' => 'Le fichier doit être un fichier valide.',
+        'file.mimes' => 'Le fichier doit être au format CSV.',
+        'file.max' => 'Le fichier ne doit pas dépasser 2 Mo.',
+    ]);
+
+    // Récupérer le fichier téléchargé
+    $file = $request->file('file');
+
+    // Lire le fichier CSV
+    try {
+        $csv = Reader::createFromPath($file->getRealPath(), 'r');
+        $csv->setHeaderOffset(0); // Utiliser la première ligne comme en-tête
+        $records = $csv->getRecords(); // Récupérer toutes les lignes
+    } catch (\Exception $e) {
         return response()->json([
-            'message' => $message,
-            'added_apprenants' => $addedApprenants,
-            'ignored_apprenants' => $ignoredApprenants
-        ], 201);
+            'message' => 'Erreur lors de la lecture du fichier CSV.',
+            'error' => $e->getMessage(),
+        ], 400);
     }
-    
-    private function createApprenant($data)
-    {
-        Log::info('Création de l\'apprenant', ['email' => $data['email'], 'telephone' => $data['telephone']]);
-    
-        // Vérifier si un apprenant avec le même email ou téléphone existe déjà
-        $existingEmail = Apprenant::where('email', $data['email'])->first();
-        if ($existingEmail) {
-            Log::info('Doublon détecté pour l\'email', ['email' => $data['email']]);
-            return 'duplicate';
+
+    // Variables pour suivre les apprenants ajoutés et ignorés
+    $addedApprenants = [];
+    $ignoredApprenants = [];
+    $errors = [];
+
+    // Parcourir les enregistrements CSV et insérer les apprenants dans la base de données
+    foreach ($records as $record) {
+        // Vérification de l'existence de la cohorte
+        $cohorte = Cohorte::find($record['cohorte_id']);
+        if (!$cohorte) {
+            $errors[] = 'Cohorte ID ' . $record['cohorte_id'] . ' non trouvée pour l\'apprenant ' . $record['email'];
+            continue;
         }
-    
-        $existingPhone = Apprenant::where('telephone', $data['telephone'])->first();
-        if ($existingPhone) {
-            Log::info('Doublon détecté pour le téléphone', ['telephone' => $data['telephone']]);
-            return 'duplicate';
+
+        // Vérification des doublons (email ou téléphone)
+        $result = $this->createApprenant($record);
+        if ($result === 'duplicate') {
+            $ignoredApprenants[] = $record['email']; // Ajouter à la liste des ignorés en cas de doublon
+        } else {
+            $addedApprenants[] = $record['email']; // Ajouter à la liste des ajoutés si l'apprenant est créé
         }
-    
-        // Générer un matricule unique
-        $matricule = $this->generateMatricule();
-        Log::info('Matricule généré', ['matricule' => $matricule]);
-    
-        // Valider et créer l'apprenant
-        Apprenant::create([
-            'nom' => $data['nom'],
-            'prenom' => $data['prenom'],
-            'email' => $data['email'],
-            'telephone' => $data['telephone'],
-            'adresse' => $data['adresse'],
-            'photo' => $data['photo'] ?? null,
-            'role' => $data['role'] ?? 'apprenant',
-            'cohorte_id' => $data['cohorte_id'],
-            'matricule' => $matricule,
-            'is_active' => true,
-        ]);
-    
-        return 'added';
     }
-    
-    private function generateMatricule()
-    {
-        $year = date('Y');  // L'année actuelle
-        $randomNumber = rand(1000, 9999);  // Nombre aléatoire à 4 chiffres
-    
-        return 'AP' . $year . $randomNumber; // Format : APP20231234
+
+    // Message à retourner
+    $message = 'Importation terminée.';
+    if (!empty($ignoredApprenants)) {
+        $message .= ' Les apprenants suivants ont été ignorés en raison de doublons ou d\'erreurs : ' . implode(', ', $ignoredApprenants);
     }
-    
+
+    if (!empty($addedApprenants)) {
+        $message .= ' Les apprenants suivants ont été ajoutés : ' . implode(', ', $addedApprenants);
+    }
+
+    // Retourner une réponse JSON avec les erreurs éventuelles
+    return response()->json([
+        'message' => $message,
+        'added_apprenants' => $addedApprenants,
+        'ignored_apprenants' => $ignoredApprenants,
+        'errors' => $errors,
+    ], 201);
+}
+
+private function createApprenant($data)
+{
+    // Vérifier si un apprenant avec le même email ou téléphone existe déjà
+    $existingEmail = Apprenant::where('email', $data['email'])->first();
+    if ($existingEmail) {
+        return 'duplicate';
+    }
+
+    $existingPhone = Apprenant::where('telephone', $data['telephone'])->first();
+    if ($existingPhone) {
+        return 'duplicate';
+    }
+
+    // Générer un matricule unique
+    $matricule = $this->generateMatricule();
+
+    // Valider les données de l'apprenant
+    $validated = [
+        'nom' => $data['nom'],
+        'prenom' => $data['prenom'],
+        'email' => $data['email'],
+        'telephone' => $data['telephone'],
+        'adresse' => $data['adresse'],
+        'photo' => $data['photo'] ?? null, // Validation de la photo
+        'role' => $data['role'] ?? 'apprenant', // Utiliser 'apprenant' par défaut si aucun rôle n'est fourni
+        'cohorte_id' => $data['cohorte_id'],
+        'matricule' => $matricule,
+        'is_active' => true, // L'apprenant sera actif par défaut
+    ];
+
+    // Créer l'apprenant
+    Apprenant::create([
+        'nom' => $validated['nom'],
+        'prenom' => $validated['prenom'],
+        'email' => $validated['email'],
+        'telephone' => $validated['telephone'],
+        'adresse' => $validated['adresse'],
+        'photo' => $validated['photo'],
+        'role' => $validated['role'],
+        'cohorte_id' => $validated['cohorte_id'],
+        'matricule' => $validated['matricule'],
+        'is_active' => $validated['is_active'],
+    ]);
+
+    return 'added';
+}
+
+private function generateMatricule()
+{
+    $year = date('Y');  // L'année actuelle
+    $randomNumber = rand(1000, 9999);  // Nombre aléatoire à 4 chiffres
+
+    return 'AP' . $year . $randomNumber; // Format : APP20231234
+}
+
+// Compter les apprenants
+public function countApprenants()
+{
+    $count = Apprenant::count(); // Utilisation de la méthode Laravel `count`
+
+    return response()->json(['count' => $count], 200);
+}
+
 }

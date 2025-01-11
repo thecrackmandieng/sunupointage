@@ -762,52 +762,35 @@ showFormForItem(choix: string): void {
 onSubmitForm(): void {
   const formData = new FormData();
 
-  if (this.showApprenantForm) {
-    // Vérification pour l'apprenant
-    Object.keys(this.apprenant).forEach(key => {
-      if (this.apprenant[key] !== null) {
-        formData.append(key, this.apprenant[key]);
-      }
-    });
-
-    formData.append('is_active', 'true');
-
-
-    this.structureService.addApprenant(formData).subscribe(
-      response => {
-        this.showNotification('Apprenant ajouté avec succès:');
-        this.closeModal();
-      },
-      error => console.error('Erreur lors de l\'ajout de l\'apprenant:', error)
-    );
-  } else if (this.showEmployeeForm) {
-    // Vérification pour l'employé
-    console.log('Département ID:', this.employe.departement_id);  // Vérification de la valeur du département ID
-
-    if (!this.employe.departement_id) {
-      console.error('Le champ departement_id est requis mais est vide.');
-      return;
-    }
-
-    // Préparation des données pour un employé
-    Object.keys(this.employe).forEach(key => {
-      if (this.employe[key] !== null) {
-        formData.append(key, this.employe[key]);
-      }
-    });
-
-    formData.append('is_active', 'true');
-
-    this.structureService.addEmploye(formData).subscribe(
-      response => {
-        this.showNotification('Employé ajouté avec succès:');
-        this.closeModal();
-      },
-      error => console.error('Erreur lors de l\'ajout de l\'employé:', error)
-    );
+  // Vérifier les données saisies
+  if (!this.employe.nom || !this.employe.prenom || !this.employe.email) {
+    console.error('Données invalides');
+    return;
   }
-}
 
+  // Préparer les données pour l'envoi
+  Object.keys(this.employe).forEach(key => {
+    if (this.employe[key] !== null) {
+      formData.append(key, this.employe[key]);
+    }
+  });
+
+  // Envoyer les données au serveur
+  this.structureService.addEmploye(formData).subscribe(
+    response => {
+      console.log('Employé ajouté avec succès');
+    },
+    error => {
+      console.error('Erreur lors de l\'ajout de l\'employé', error);
+      // Gérer l'erreur de serveur
+      if (error.status === 500) {
+        console.error('Erreur interne du serveur');
+        // Afficher un message d'erreur à l'utilisateur
+        this.errorMessage = 'Erreur interne du serveur. Veuillez réessayer plus tard.';
+      }
+    }
+  );
+}
 // Fermer le modal
 closeModal(): void {
   this.showEmployeeForm = false;

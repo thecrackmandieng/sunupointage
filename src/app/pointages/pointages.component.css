@@ -225,10 +225,10 @@
   .btn-close {
     background-color: #f44336;
     color: white;
-    padding: 10px 15px;
+    padding: 10px 45px;
     border: none;
     cursor: pointer;
-    margin-left: 10px;
+    margin-left: 20px;
   }
   .success-modal {
     position: fixed;
@@ -252,5 +252,33 @@
   
   .success-modal .btn {
     margin-top: 10px;
+  }
+  .pagination {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-top: 1rem;
+  }
+  
+  .btn-pagination {
+    margin: 0 0.5rem;
+    padding: 0.5rem 1rem;
+    border: none;
+    background-color: #007bff;
+    color: white;
+    cursor: pointer;
+    border-radius: 4px;
+  }
+  
+  .btn-pagination:disabled {
+    background-color: #ccc;
+    cursor: not-allowed;
+  }
+  .header-list {
+    background-color: #137C8B;
+    padding: 15px;
+    border-radius: 8px;
+    color: white;
+    text-align: center;
   }
   

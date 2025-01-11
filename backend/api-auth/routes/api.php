@@ -8,6 +8,7 @@ use App\Http\Controllers\CohorteController;
 use App\Http\Controllers\EmployeController;
 use App\Http\Controllers\ApprenantController;
 use App\Http\Controllers\DepartementController;
+use App\Http\Controllers\PointageController;
 
 
 
@@ -21,6 +22,8 @@ Route::delete('utilisateurs/{id}', [UtilisateurController::class, 'destroy']);
 Route::get('/pointages', [UtilisateurController::class, 'listerPointages']);
 Route::post('/utilisateurs/upload-csv', [UtilisateurController::class, 'uploadCSV']);
 Route::put('/pointages/{id}', [UtilisateurController::class, 'updatePointage']);
+
+Route::put('/pointages/{id}', [PointageController::class, 'update']);
 
 
 
@@ -92,3 +95,22 @@ Route::middleware('auth.token')->group(function () {
         Route::delete('/delete/{id}', [ApprenantController::class, 'deleteOne']);  // Supprimer un apprenant
         Route::post('/import/{cohorteId}', [ApprenantController::class, 'importCsv']);
     });
+
+
+    //ousmane fall
+
+    use App\Http\Controllers\UserController;
+
+// Routes pour les départements
+// Routes pour les cohortes
+
+// Routes pour les utilisateurs
+/* Route::get('utilisateurs', [UserController::class, 'list']);
+ */Route::post('ajout/users', [UserController::class, 'create']);
+Route::get('users/{id}', [UserController::class, 'getUserById']); // Nouvelle route pour récupérer un utilisateur par son ID
+
+
+Route::put('/users/{id}/assign-card', [UserController::class, 'assignCard']);
+
+
+

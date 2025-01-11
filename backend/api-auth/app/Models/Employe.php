@@ -32,6 +32,22 @@ class Employe extends Eloquent
         'is_active' => 'boolean',
     ];
 
+    public static $rules = [
+        'nom' => 'required',
+        'prenom' => 'required',
+        'email' => 'required|email',
+        'telephone' => 'required',
+        'adresse' => 'required',
+        'photo' => 'required',
+        'fonction' => 'required',
+        'departement_id' => 'required',
+        'card_id' => 'required',
+        'matricule' => 'required',
+        'role' => 'required',
+        'password' => 'required',
+        'is_active' => 'required',
+    ];
+
     // Fonction pour générer un matricule unique
     public static function generateMatricule()
     {

@@ -26,11 +26,7 @@ public function create(Request $request)
         return response()->json(['message' => 'Ce numéro de téléphone est déjà attribué.'], 400);
     }
 
-    // Vérifier si le card_id existe déjà
-    $existingCardId = Employe::where('card_id', $request->card_id)->first();
-    if ($existingCardId) {
-        return response()->json(['message' => 'Ce card_id est déjà utilisé.'], 400);
-    }
+   
 
     // Valider les données de l'employé
     $validated = $request->validate([
@@ -43,10 +39,12 @@ public function create(Request $request)
         'photo' => 'nullable|file|mimes:jpeg,png,jpg,gif|max:2048', // Validation de la photo
         'fonction' => 'required|string|max:255',
         'departement_id' => 'required|exists:departements,_id', // Vérification avec _id du département
-        'card_id' => 'nullable|string|unique:employees,card_id',
-        'role' => 'required|string|in:admin,utilisateur',
+        'role' => 'required|string|in:admin,utilisateur,apprenant,employe',
         'password' => 'required|string|min:8',
+
+
     ]);
+    $validated['is_active'] = true; // Par défaut actif
 
     // Vérifier si le département existe
     $departement = Departement::find($validated['departement_id']);
@@ -80,9 +78,16 @@ public function create(Request $request)
         'fonction' => $validated['fonction'],
         'departement_id' => $validated['departement_id'], // Lien avec le département
         'role' => $validated['role'],
-        'photo' => $validated['photo'], // Si la photo n'existe pas, la valeur est nulle
+        'photo' => $photoPath, // Utilisez $photoPath au lieu de $validated['photo']
         'password' => $validated['password'],
+        'is_active' => $validated['is_active'],
+
     ]);
+
+
+     // Mettre à jour le nombre de personnes dans la cohorte après l'ajout d'un apprenant
+     $departement->increment('nombre_personne');  // Cela va incrémenter le champ 'nombre_personnes' de +1
+
 
     $employe->load('departement');  // Charge la relation departement
 
@@ -179,6 +184,38 @@ public function create(Request $request)
         return response()->json(['message' => 'Employé bloqué avec succès', 'employe' => $employe], 200);
     }
 
+                // Débloquer un employé
+            public function unblockOne($id)
+            {
+                $employe = Employe::find($id);
+
+                if (!$employe) {
+                    return response()->json(['message' => 'Employé non trouvé'], 404);
+                }
+
+                // Débloquer l'employé en mettant 'is_active' à true
+                $employe->update(['is_active' => true]);
+
+                return response()->json(['message' => 'Employé débloqué avec succès', 'employe' => $employe], 200);
+            }
+
+                    // Débloquer plusieurs employés
+        public function unblock(Request $request)
+        {
+            // Valider les identifiants (peut être un tableau ou une valeur unique)
+            $validated = $request->validate([
+                'ids' => 'required|array',
+                'ids.*' => 'required|exists:employes,id',
+            ]);
+
+            // Débloquer les employés
+            Employe::whereIn('id', $validated['ids'])->update(['is_active' => true]);
+
+            return response()->json(['message' => 'Employé(s) débloqué(s) avec succès'], 200);
+        }
+
+
+
     // Supprimer un ou plusieurs employés
     public function delete(Request $request)
     {
@@ -187,27 +224,48 @@ public function create(Request $request)
             'ids' => 'required|array',
             'ids.*' => 'required|exists:employes,id',
         ]);
-
+    
+        // Récupérer les employés à supprimer
+        $employes = Employe::whereIn('id', $validated['ids'])->get();
+    
         // Supprimer les employés
         Employe::whereIn('id', $validated['ids'])->delete();
-
+    
+        // Mettre à jour le nombre de personnes dans les départements après la suppression des employés
+        foreach ($employes as $employe) {
+            $departement = $employe->departement;  // Récupérer le département associé à l'employé
+            if ($departement) {
+                $departement->decrement('nombre_personne');  // Décrémenter le nombre de personnes dans le département
+            }
+        }
+    
         return response()->json(['message' => 'Employé(s) supprimé(s) avec succès'], 200);
     }
-
+    
     // Supprimer un employé
-    public function deleteOne($id)
+     public function deleteOne($id)
     {
+        // Trouver l'employé à supprimer
         $employe = Employe::find($id);
-
+    
         if (!$employe) {
             return response()->json(['message' => 'Employé non trouvé'], 404);
         }
-
+    
+        // Récupérer le département associé à cet employé
+        $departement = $employe->departement;
+    
+        // Supprimer l'employé
         $employe->delete();
-
+    
+        // Mettre à jour le nombre de personnes dans le département après la suppression de l'employé
+        if ($departement) {
+            $departement->decrement('nombre_personne');  // Décrémenter le nombre de personnes dans le département
+        }
+    
         return response()->json(['message' => 'Employé supprimé avec succès'], 200);
     }
-
+    
 
 
 
@@ -324,5 +382,12 @@ private function generateMatricule()
     $randomNumber = rand(1000, 9999);  // Nombre aléatoire à 4 chiffres
 
     return 'EMP' . $year . $randomNumber; // Format : EMP20231234
+}
+// Compter les employés
+public function countEmployees()
+{
+    $count = Employe::count(); // Utilisation de la méthode Laravel `count`
+
+    return response()->json(['count' => $count], 200);
 }
 }

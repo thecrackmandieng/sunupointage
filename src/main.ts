@@ -7,36 +7,33 @@ import { HttpClientModule } from '@angular/common/http';
 import { LoginComponent } from './app/pages/login/login.component';
 import { DashboardComponent } from './app/components/dashboard/dashboard.component';
 import { AdminDashboardComponent } from './app/pages/admin-dashboard/admin-dashboard.component';
-import { PointagesComponent } from './app/pointages/pointages.component'; // Assurez-vous du bon chemin
+import { PointagesComponent } from './app/pointages/pointages.component';
 import { AppComponent } from './app/app.component';
-import { StructuresComponent } from './app/structures/structures.component'; // Assurez-vous du bon chemin
-import { ApprenantsComponent } from './app/apprenants/apprenants.component'; // Assurez-vous du bon chemin
-import { EmployesComponent } from './app/employes/employes.component'; // Assurez-vous du bon chemin
-import { CardManagementComponent} from './app/card-management/card-management.component'; // Assurez-vous du bon chemin
+import { StructuresComponent } from './app/structures/structures.component';
+import { ApprenantsComponent } from './app/apprenants/apprenants.component';
+import { EmployesComponent } from './app/employes/employes.component';
+import { CardManagementComponent } from './app/card-management/card-management.component';
+import { AssignCardComponent } from './app/assign-card/assign-card.component';
 
-
- 
-
+// Définition des routes de l'application
 const routes: Route[] = [
-  { path: '', redirectTo: '/login', pathMatch: 'full' },  // Route de redirection vers la page de login
-  { path: 'login', component: LoginComponent },
-  { path: 'dashboard', component: DashboardComponent },
-  { path: 'admin-dashboard', component: AdminDashboardComponent },
-  { path: 'pointages', component: PointagesComponent }, // La route pour afficher les pointages
-  { path: 'structures', component: StructuresComponent }, // La route pour afficher les structures
-  { path: 'apprenants', component: ApprenantsComponent }, // La route pour afficher les structures
-  { path: 'employes', component: EmployesComponent }, // La route pour afficher les structures
-  { path: 'card-management', component: CardManagementComponent }, // La route pour afficher les structures
-
-
-
-  { path: '**', redirectTo: '/login' },
+  { path: '', redirectTo: '/login', pathMatch: 'full' },  // Route par défaut
+  { path: 'login', component: LoginComponent },          // Route pour la page de connexion
+  { path: 'dashboard', component: DashboardComponent },  // Dashboard utilisateur
+  { path: 'admin-dashboard', component: AdminDashboardComponent },  // Dashboard admin
+  { path: 'pointages', component: PointagesComponent },  // Gestion des pointages
+  { path: 'structures', component: StructuresComponent }, // Gestion des structures
+  { path: 'apprenants', component: ApprenantsComponent }, // Gestion des apprenants
+  { path: 'employes', component: EmployesComponent },     // Gestion des employés
+  { path: 'card-management', component: CardManagementComponent }, // Gestion des cartes
+  { path: 'assign-card/:id', component: AssignCardComponent }, // Assignation de cartes avec un ID
+  { path: '**', redirectTo: '/login' }, // Redirection en cas de route non trouvée
 ];
 
-// Bootstrap de l'application avec AppComponent et les routes
+// Initialisation de l'application avec les routes et les services nécessaires
 bootstrapApplication(AppComponent, {
   providers: [
-    provideRouter(routes),  // Configuration des routes
-    importProvidersFrom(HttpClientModule),  // Importation du module HttpClient pour les requêtes HTTP
+    provideRouter(routes), // Fournir les routes définies
+    importProvidersFrom(HttpClientModule), // Fournir HttpClientModule pour les requêtes HTTP
   ],
 }).catch((err) => console.error(err));
