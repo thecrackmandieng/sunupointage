@@ -30,6 +30,12 @@ interface Structure {
 
 
 export class StructuresComponent implements OnInit {
+togglePassword() {
+throw new Error('Method not implemented.');
+}
+onFileSelected($event: Event) {
+throw new Error('Method not implemented.');
+}
 
 
 
@@ -171,7 +177,7 @@ successMessageVisible = false;
   filterType: string = 'departement'; // Par défaut, on affiche les départements
   searchQuery: string = ''; // La barre de recherche
   currentPages: number = 1;
-  itemsPerPage: number = 6;
+  itemsPerPage: number = 10;
   selectAll: boolean = false; // Variable pour la case à cocher "tout sélectionner"
   selectedItems: any[] = [];  // Liste des éléments sélectionnés
 
@@ -355,24 +361,17 @@ loadData(): void {
     this.structureService.updateDepartement(this.currentDepartement.id, this.currentDepartement).subscribe(
       (updatedDepartement) => {
         console.log('Département mis à jour :', updatedDepartement);
-              // Mettre à jour localement la liste des départements
-          const index = this.departements.findIndex(dep => dep.id === updatedDepartement.id);
-          if (index !== -1) {
-            this.departements[index] = { ...updatedDepartement };
-          }
-        
+  
         // Fermer le formulaire
         this.closeDepartementEditForm();
-        
-             // Forcer la détection des changements
-             this.cdr.markForCheck();
   
         // Afficher le message de succès après la fermeture du modal
         setTimeout(() => {
           this.showNotification("Les modifications ont été enregistrées avec succès.");
           console.log(this.successMessage);
 
-       
+            // Forcer la détection des changements
+        this.cdr.markForCheck();
   
           // Supprimer le message après 3 secondes
           setTimeout(() => {
@@ -697,42 +696,25 @@ resetForm(isDepartement: boolean): void {
 
  
 
+  // Cette méthode est appelée lorsque l'utilisateur veut associer un apprenant ou un employé
+  // au département ou à la cohorte sélectionnée dans l'application.
+  setCohorteOrDepartement(choix: string): void {
+    if (choix === 'cohorte') {
+      // On associe la cohorte sélectionnée à l'apprenant
+      this.apprenant.cohorte_id = this.selectedCohorteId;
+      console.log('L\'apprenant est associé à la cohorte ID:', this.selectedCohorteId);
+    } else if (choix === 'departement') {
+      // On associe le département sélectionné à l'employé
+      this.employe.departement_id = this.selectedDepartementId;
+      console.log('L\'employé est associé au département ID:', this.selectedDepartementId);
+    }
+  }
 
-// Méthode pour afficher le formulaire et pré-remplir les informations
-selectCohorte(cohorteId: number): void {
-  this.selectedCohorteId = cohorteId;
-  console.log('Cohorte sélectionnée:', this.selectedCohorteId);
-  // Afficher le formulaire d'ajout d'un apprenant
-  this.showFormForItem('cohorte');
-}
+  // Cette méthode ouvre le formulaire approprié en fonction de l'élément sélectionné
+  showFormForItem(): void {
+    console.log('filterType:', this.filterType);  // Vérification de la valeur de filterType
 
-selectDepartement(departementId: number): void {
-  this.selectedDepartementId = departementId;
-  console.log('Département sélectionné:', this.selectedDepartementId);
-  // Afficher le formulaire d'ajout d'un employé
-  this.showFormForItem('departement');
-}
-
-showFormForItem(choix: string): void {
-  console.log('Type de filtre sélectionné:', choix);
-
-  // Initialisation des objets pour apprenant et employé
-  if (choix === 'departement') {
-    this.employe = {
-      nom: '',
-      prenom: '',
-      email: '',
-      telephone: '',
-      adresse: '',
-      photo: null,
-      matricule: '',
-      is_active: true,
-      role: '',
-      departement_id: this.selectedDepartementId,  // ID du département déjà défini
-      fonction: '',
-      card_id: ''
-    };
-  } else if (choix === 'cohorte') {
+    // Réinitialisation des objets apprenant et employé
     this.apprenant = {
       nom: '',
       prenom: '',
@@ -741,87 +723,131 @@ showFormForItem(choix: string): void {
       adresse: '',
       photo: null,
       matricule: '',
-      is_active: true,
-
+      password: '',
       role: '',
-      cohorte_id: this.selectedCohorteId,  // ID de la cohorte déjà définie
+      cohorte_id: this.selectedCohorteId,  // Utilisation de la cohorte déjà sélectionnée
       card_id: ''
     };
-  }
 
-  // Afficher le formulaire correspondant
-  if (choix === 'departement') {
-    this.showEmployeeForm = true;
-    this.showApprenantForm = false;
-  } else if (choix === 'cohorte') {
-    this.showApprenantForm = true;
-    this.showEmployeeForm = false;
-  }
-}
+    this.employe = {
+      nom: '',
+      prenom: '',
+      email: '',
+      telephone: '',
+      adresse: '',
+      photo: null,
+      matricule: '',
+      password: '',
+      role: '',
+      departement_id: this.selectedDepartementId,  // Utilisation du département déjà sélectionné
+      fonction: '',
+      card_id: ''
+    };
 
-onSubmitForm(): void {
-  const formData = new FormData();
-
-  // Vérifier les données saisies
-  if (!this.employe.nom || !this.employe.prenom || !this.employe.email) {
-    console.error('Données invalides');
-    return;
-  }
-
-  // Préparer les données pour l'envoi
-  Object.keys(this.employe).forEach(key => {
-    if (this.employe[key] !== null) {
-      formData.append(key, this.employe[key]);
+    // Affichage du formulaire selon le type sélectionné
+    if (this.filterType === 'departement') {
+      this.showEmployeeForm = true;
+      this.showApprenantForm = false;
+      console.log('Département sélectionné - Affichage du formulaire Employé');
+    } else if (this.filterType === 'cohorte') {
+      this.showEmployeeForm = false;
+      this.showApprenantForm = true;
+      console.log('Cohorte sélectionnée - Affichage du formulaire Apprenant');
+    } else {
+      this.showEmployeeForm = false;
+      this.showApprenantForm = false;
+      console.log('Aucun type sélectionné - Aucun formulaire affiché');
     }
-  });
+  }
 
-  // Envoyer les données au serveur
-  this.structureService.addEmploye(formData).subscribe(
+  // Validation du champ
+  validateField(field: any) {
+    if (!field.valid) {
+      console.error('Le champ n\'est pas valide');
+    }
+  }
+
+  // Soumettre le formulaire (apprenant ou employé)
+  onSubmitForm(): void {
+    console.log('Le bouton a été cliqué');
+
+    // Formulaire pour Apprenant
+  // Formulaire pour Apprenant
+// Formulaire pour Apprenant
+if (this.showApprenantForm) {
+  const formData = new FormData();
+  formData.append('nom', this.apprenant.nom);
+  formData.append('prenom', this.apprenant.prenom);
+  formData.append('email', this.apprenant.email);
+  formData.append('telephone', this.apprenant.telephone);
+  formData.append('adresse', this.apprenant.adresse);
+  formData.append('photo', this.apprenant.photo);
+  formData.append('matricule', this.apprenant.matricule);
+  formData.append('password', this.apprenant.password);
+  formData.append('role', this.apprenant.role);
+
+  // Vérification de l'ID de la cohorte
+  if (this.apprenant.cohorte_id && typeof this.apprenant.cohorte_id === 'string') {
+    formData.append('cohorte_id', this.apprenant.cohorte_id);
+  } else {
+    console.error('ID de cohorte invalide');
+    return; // Ne pas soumettre si l'ID est invalide
+  }
+
+  formData.append('card_id', this.apprenant.card_id);
+
+  this.structureService.addApprenant(formData).subscribe(
     response => {
-      console.log('Employé ajouté avec succès');
+      console.log('Apprenant ajouté:', response);
+      this.closeModal();  // Fermer le modal
     },
     error => {
-      console.error('Erreur lors de l\'ajout de l\'employé', error);
-      // Gérer l'erreur de serveur
-      if (error.status === 500) {
-        console.error('Erreur interne du serveur');
-        // Afficher un message d'erreur à l'utilisateur
-        this.errorMessage = 'Erreur interne du serveur. Veuillez réessayer plus tard.';
-      }
+      console.error('Erreur lors de l\'ajout de l\'apprenant:', error);
     }
   );
 }
-// Fermer le modal
-closeModal(): void {
-  this.showEmployeeForm = false;
-  this.showApprenantForm = false;
+
+// Formulaire pour Employé
+else if (this.showEmployeeForm) {
+  const formData = new FormData();
+  formData.append('nom', this.employe.nom);
+  formData.append('prenom', this.employe.prenom);
+  formData.append('email', this.employe.email);
+  formData.append('telephone', this.employe.telephone);
+  formData.append('adresse', this.employe.adresse);
+  formData.append('photo', this.employe.photo);
+  formData.append('matricule', this.employe.matricule);
+  formData.append('password', this.employe.password);
+  formData.append('role', this.employe.role);
+  formData.append('fonction', this.employe.fonction);
+
+  // Vérification de l'ID du département
+  if (this.employe.departement_id && typeof this.employe.departement_id === 'string') {
+    formData.append('departement_id', this.employe.departement_id);
+  } else {
+    console.error('ID du département invalide');
+    return; // Ne pas soumettre si l'ID est invalide
+  }
+
+  formData.append('card_id', this.employe.card_id);
+
+  this.structureService.addEmploye(formData).subscribe(
+    response => {
+      console.log('Employé ajouté:', response);
+      this.closeModal();  // Fermer le modal
+    },
+    error => {
+      console.error('Erreur lors de l\'ajout de l\'employé:', error);
+    }
+  );
 }
+  }
 
-
-
-// Validation de champ
-validateField(field: any): void {
-  if (!field.valid) {
-    console.error('Le champ n\'est pas valide');
+  // Fermer le modal
+  closeModal() {
+    this.showEmployeeForm = false;
+    this.showApprenantForm = false;
   }
 }
 
 
-
-
-   
-  onFileSelected(event: any): void {
-    const file = event.target.files[0]; // Get the first selected file
-    if (file) {
-      this.employe.photo = file; // Assign the file to your object
-    }
-  }
-
-
-    // Variable pour savoir si le mot de passe est visible
-
-    // Fonction pour basculer la visibilité du mot de passe
-    togglePassword(): void {
-      this.showPassword = !this.showPassword;
-    }
-}

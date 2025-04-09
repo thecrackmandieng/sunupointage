@@ -58,11 +58,11 @@ export class LoginComponent implements OnInit, OnDestroy {
     this.isLoading = true;
     this.errorMessage = null; // Réinitialiser le message d'erreur
   
-    console.log('Données utilisateur soumises :', this.user);
+    
   
     if (this.user.rfidUID) {
       // Connexion par carte RFID
-      console.log('Tentative de connexion via RFID...');
+     
       this.authService.loginWithRFID(this.user.rfidUID).subscribe({
         next: (response) => {
           this.handleSuccess(response);
@@ -73,7 +73,7 @@ export class LoginComponent implements OnInit, OnDestroy {
       });
     } else if (this.user.email && this.user.password) {
       // Connexion par email et mot de passe
-      console.log('Tentative de connexion via email et mot de passe...');
+    
       this.authService.login(this.user.email, this.user.password).subscribe({
         next: (response) => {
           this.handleSuccess(response);
@@ -86,12 +86,9 @@ export class LoginComponent implements OnInit, OnDestroy {
       // Aucun champ valide fourni
       this.isLoading = false;
       this.errorMessage = 'Veuillez fournir un email/mot de passe ou un UID RFID';
-      console.error('Erreur : Aucun champ valide fourni');
     }
   }
   
-
-  // Gérer le succès de la connexion
   handleSuccess(response: any) {
     this.isLoading = false;
     console.log('Connexion réussie', response);
@@ -103,11 +100,15 @@ export class LoginComponent implements OnInit, OnDestroy {
     const role = response.role;
   
     if (role === 'admin') {
-      // Si le rôle est admin, rediriger vers le tableau de bord admin
-      this.router.navigate(['/admin-dashboard']);
+      // Rediriger vers le tableau de bord admin
+      this.router.navigate(['/admin-dashboard']).then(() => {
+        window.location.reload(); // Rafraîchir la page après la redirection
+      });
     } else if (role === 'vigile') {
-      // Si le rôle est vigile, rediriger vers le tableau de bord vigile
-      this.router.navigate(['/dashboard']);
+      // Rediriger vers le tableau de bord vigile
+      this.router.navigate(['/dashboard']).then(() => {
+        window.location.reload(); // Rafraîchir la page après la redirection
+      });
     } else {
       // Si le rôle est inconnu ou non autorisé
       this.errorMessage = 'Rôle utilisateur inconnu ou non autorisé';
@@ -115,6 +116,16 @@ export class LoginComponent implements OnInit, OnDestroy {
     }
   }
   
+  logout() {
+    // Supprimer le token d'authentification
+    localStorage.removeItem('token');
+  
+    // Rediriger vers la page de connexion
+    this.router.navigate(['/login']).then(() => {
+      // Rafraîchir la page après la redirection
+      window.location.reload();
+    });
+  }
 
 
   // Gérer les erreurs de connexion
