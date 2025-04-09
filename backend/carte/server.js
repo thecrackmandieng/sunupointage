@@ -147,10 +147,27 @@ parser.on('data', async (data) => {
 // Endpoints
 app.post('/login', async (req, res) => {
   try {
-    const { email, password } = req.body;
+    const { email, password, rfidUID } = req.body;
+
+    // Vérification si un RFID UID est fourni
+    if (rfidUID) {
+      const user = await User.findOne({ rfidUID });
+      if (!user) {
+        return res.status(401).json({ message: 'RFID non reconnu' });
+      }
+
+      const token = jwt.sign({ id: user._id, role: user.role }, process.env.JWT_SECRET, { expiresIn: '1h' });
+      user.api_token = token;
+      await user.save();
+
+      return res.json({ message: 'Connexion réussie via RFID', api_token: token, role: user.role });
+    }
+
+    // Vérification si email et mot de passe sont fournis
     if (!email || !password) {
       return res.status(400).json({ message: 'Email et mot de passe requis' });
     }
+
     const user = await User.findOne({ email });
     if (!user || !bcrypt.compareSync(password, user.password)) {
       return res.status(401).json({ message: 'Identifiants invalides' });

@@ -19,8 +19,10 @@ export class AuthService {
    * @param password Mot de passe de l'utilisateur
    * @returns Observable des données de connexion
    */
-  login(email: string, password: string): Observable<any> {
-    return this.http.post(this.loginUrl, { email, password }).pipe(
+login(emailOrUID: string, password?: string): Observable<any> {
+    console.log('Tentative de connexion avec :', { emailOrUID, password });
+    const payload = password ? { email: emailOrUID, password } : { rfidUID: emailOrUID };
+    return this.http.post(this.loginUrl, payload).pipe(
       catchError((error) => this.handleError('Erreur de connexion', error))
     );
   }
@@ -31,6 +33,7 @@ export class AuthService {
    * @returns Observable des données de connexion
    */
   loginWithRFID(rfidUID: string): Observable<any> {
+    console.log('Tentative de connexion RFID avec :', { rfidUID });
     return this.http.post(this.rfidLoginUrl, { rfidUID }).pipe(
       catchError((error) => this.handleError('Erreur RFID', error))
     );

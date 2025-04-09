@@ -56,9 +56,13 @@ export class LoginComponent implements OnInit, OnDestroy {
   // Méthode appelée lors de la soumission du formulaire
   onSubmit() {
     this.isLoading = true;
+    this.errorMessage = null; // Réinitialiser le message d'erreur
+  
+    console.log('Données utilisateur soumises :', this.user);
   
     if (this.user.rfidUID) {
       // Connexion par carte RFID
+      console.log('Tentative de connexion via RFID...');
       this.authService.loginWithRFID(this.user.rfidUID).subscribe({
         next: (response) => {
           this.handleSuccess(response);
@@ -67,8 +71,9 @@ export class LoginComponent implements OnInit, OnDestroy {
           this.handleError(error);
         },
       });
-    } else {
+    } else if (this.user.email && this.user.password) {
       // Connexion par email et mot de passe
+      console.log('Tentative de connexion via email et mot de passe...');
       this.authService.login(this.user.email, this.user.password).subscribe({
         next: (response) => {
           this.handleSuccess(response);
@@ -77,6 +82,11 @@ export class LoginComponent implements OnInit, OnDestroy {
           this.handleError(error);
         },
       });
+    } else {
+      // Aucun champ valide fourni
+      this.isLoading = false;
+      this.errorMessage = 'Veuillez fournir un email/mot de passe ou un UID RFID';
+      console.error('Erreur : Aucun champ valide fourni');
     }
   }
   
